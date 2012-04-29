@@ -6,7 +6,7 @@
 ****************************************************************************
 
   Apti is a frontend for aptitude with improved presentation of packages.
-  version: 0.1 (2012/04/18)
+  version: 0.1.1 (2012/04/29)
 
   Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
   
@@ -336,8 +336,17 @@ end
 def remove package
   aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
 
+  # if problem with dependencies, use aptitude
+  if aptitude_string.include? '1)'
+    if USESUDO
+      system "sudo aptitude remove #{package}"
+    else
+      system "su -c 'aptitude remove #{package}'"
+    end
+    exit(0)
+
   # if the name is wrong
-  if aptitude_string.include? '«'
+  elsif aptitude_string.include? '«'
     puts "Wrong name given."
     exit(0)
 
