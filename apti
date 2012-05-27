@@ -23,6 +23,12 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+  known issues:
+  - crash if apt-listbug found a bug
+    because of su -c 'commande' : http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=662983
+    seems to be fixed in apt-listbug 0.1.7
+
 ****************************************************************************
 =end
 
@@ -48,7 +54,7 @@ SPACESVERSION     = 20            # spaces between version installed and version
 # help
 #
 def help
-  puts "usage: #{File.basename($0)} commande"
+  puts "usage: #{File.basename $0} commande"
   puts "Commandes:"
   puts "  update"
   puts "  upgrade"
@@ -87,12 +93,12 @@ def upgrade full_upgrade = false
       end
     end
 
-    exit(0)
+    exit 0
 
   # if there is no package to upgrade
   elsif !aptitude_string.include? ':'
     puts "System is up to date."
-    exit(0)
+    exit 0
   end
 
   packages = [[]]
@@ -185,13 +191,13 @@ def upgrade full_upgrade = false
   while answer.downcase != 'y' && answer.downcase != 'n'
     print "\n\033[1mContinue the upgrade ? (Y/n)\033[0m "
     answer = STDIN.gets.chomp
-    if answer == ''
+    if answer.empty?
       answer = 'y'
     end
   end
 
   if answer.downcase == 'n'
-    exit(0)
+    exit 0
   end
 
   if USESUDO
@@ -228,7 +234,7 @@ def search package
     # construct the description (all after the first '-')
     name_passed = false
     package_str.each do |str|
-      if name_passed == false
+      if !name_passed
         name_passed = true
       else
         package_description += "- #{str }"
@@ -244,7 +250,7 @@ def search package
 
     # display the description
     package_description.chomp!
-    if package_description != ''
+    if !package_description.empty?
       puts "\t#{COLORDESCRIPTION}#{package_description}#{COLOREND}"
     end
     
@@ -265,17 +271,17 @@ def install package
     else
       system "su -c 'aptitude install #{package}'"
     end
-    exit(0)
+    exit 0
 
   # if the name is wrong
   elsif aptitude_string.include? '«'
     puts "Wrong name given."
-    exit(0)
+    exit 0
 
   # if the package is already installed
   elsif !aptitude_string.include? ':'
     puts "Package(s) already installed."
-    exit(0)
+    exit 0
   end
 
   packages = [[]]
@@ -292,7 +298,7 @@ def install package
       package_name = $1
       package_version = ele.split(' [').last
 
-      if first_install == false
+      if !first_install
         puts "\033[1mPackage(s) to install:\033[0m"
         first_install = true
       end
@@ -313,13 +319,13 @@ def install package
   while answer.downcase != 'y' && answer.downcase != 'n'
     print "\n\033[1mContinue the installation ? (Y/n)\033[0m "
     answer = STDIN.gets.chomp
-    if answer == ''
+    if answer.empty?
       answer = 'y'
     end
   end
 
   if answer.downcase == 'n'
-    exit(0)
+    exit 0
   end
 
   if USESUDO
@@ -343,17 +349,17 @@ def remove package
     else
       system "su -c 'aptitude remove #{package}'"
     end
-    exit(0)
+    exit 0
 
   # if the name is wrong
   elsif aptitude_string.include? '«'
     puts "Wrong name given."
-    exit(0)
+    exit 0
 
   # if the package is not installed
   elsif !aptitude_string.include? ':'
     puts "Package(s) not installed."
-    exit(0)
+    exit 0
   end
 
   packages = [[]]
@@ -370,7 +376,7 @@ def remove package
       package_name = $1
       package_version = ele.split(' [').last
 
-      if first_remove == false
+      if !first_remove
         puts "\033[1mPackage(s) to remove:\033[0m"
         first_remove = true
       end
@@ -391,13 +397,13 @@ def remove package
   while answer.downcase != 'y' && answer.downcase != 'n'
     print "\n\033[1mRemove these packages ? (Y/n)\033[0m "
     answer = STDIN.gets.chomp
-    if answer == ''
+    if answer.empty?
       answer = 'y'
     end
   end
 
   if answer.downcase == 'n'
-    exit(0)
+    exit 0
   end
 
   if USESUDO
@@ -425,7 +431,7 @@ case ARGV[0]
     packages_to_search = ''
     first_argv_passed = false
     ARGV.each do |package|
-      if first_argv_passed == false
+      if !first_argv_passed
         first_argv_passed = true
       else
         packages_to_search += " #{package}"
@@ -444,7 +450,7 @@ case ARGV[0]
     packages_to_remove = ''
     first_argv_passed = false
     ARGV.each do |package|
-      if first_argv_passed == false
+      if !first_argv_passed
         first_argv_passed = true
       else
         packages_to_remove += " #{package}"
@@ -456,7 +462,7 @@ case ARGV[0]
     packages_to_install = ''
     first_argv_passed = false
     ARGV.each do |package|
-      if first_argv_passed == false
+      if !first_argv_passed
         first_argv_passed = true
       else
         packages_to_install += " #{package}"
