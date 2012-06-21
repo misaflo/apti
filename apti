@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/env ruby
 # encoding: utf-8
 
 
@@ -6,7 +6,7 @@
 ****************************************************************************
 
   Apti is a frontend for aptitude with improved presentation of packages.
-  version: 0.1.1 (2012/04/29)
+  version: 0.1.2 (2012/06/21)
 
   Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
   
@@ -27,28 +27,29 @@
   known issues:
   - crash if apt-listbug found a bug
     because of su -c 'commande' : http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=662983
-    seems to be fixed in apt-listbug 0.1.7
+    fixed in apt-listbug 0.1.7
 
 ****************************************************************************
 =end
 
+$VERBOSE          = true          # enable warnings
 
-COLORINSTALL      = "\033[1;32m"  # green
-COLORREMOVE       = "\033[1;31m"  # red
-COLORDESCRIPTION  = "\033[1;30m"  # gray
-COLOREND          = "\033[0m"
+COLOR_INSTALL     = "\033[1;32m"  # green
+COLOR_REMOVE      = "\033[1;31m"  # red
+COLOR_DESCRIPTION = "\033[1;30m"  # gray
+COLOR_END         = "\033[0m"
 
-USESUDO           = false         # if false, use root password
+USE_SUDO          = false         # if false, use root password
 
-SPACESNAME        = 40            # spaces between name and version of a package
-SPACESVERSION     = 20            # spaces between version installed and version to install
-
-
+SPACES_NAME       = 40            # spaces between name and version of a package
+SPACES_VERSION    = 20            # spaces between version installed and version to install
 
 
-##########################
-##      functions       ##
-##########################
+
+
+#-----------------------------#
+#          functions          #
+#-----------------------------#
 
 #
 # help
@@ -57,7 +58,7 @@ def help
   puts "usage: #{File.basename $0} commande"
   puts "Commandes:"
   puts "  update"
-  puts "  upgrade"
+  puts "  safe-upgrade"
   puts "  search package"
   puts "  install package"
   puts "  remove package"
@@ -72,24 +73,24 @@ def upgrade full_upgrade = false
   if full_upgrade
     aptitude_string = `aptitude full-upgrade -V -s --allow-untrusted --assume-yes`
   else
-    aptitude_string = `aptitude upgrade -V -s --allow-untrusted --assume-yes`
+    aptitude_string = `aptitude safe-upgrade -V -s --allow-untrusted --assume-yes`
   end
 
   # if problem with dependencies, use aptitude
   if aptitude_string.include? '1)'
 
-    if USESUDO
+    if USE_SUDO
       if full_upgrade
         system "sudo aptitude full-upgrade"
       else
-        system "sudo aptitude upgrade"
+        system "sudo aptitude safe-upgrade"
       end
 
     else
       if full_upgrade
         system "su -c 'aptitude full-upgrade'"
       else
-        system "su -c 'aptitude upgrade'"
+        system "su -c 'aptitude safe-upgrade'"
       end
     end
 
@@ -125,11 +126,11 @@ def upgrade full_upgrade = false
       print "install: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACESNAME - package_name.length).times do
+      (SPACES_NAME - package_name.length).times do
         print ' '
       end
 
-      puts "#{COLORINSTALL}#{package_version}#{COLOREND}"
+      puts "#{COLOR_INSTALL}#{package_version}#{COLOR_END}"
 
     # if we have a package to remove
     # ex: gcj-4.6-base{u} [4.6.3-1]
@@ -145,11 +146,11 @@ def upgrade full_upgrade = false
       print "remove: #{package_name} "
 
       # print spaces between name and version of the package
-      (SPACESNAME - package_name.length).times do
+      (SPACES_NAME - package_name.length).times do
         print ' '
       end
 
-      puts "#{COLORREMOVE}#{package_version}#{COLOREND}"
+      puts "#{COLOR_REMOVE}#{package_version}#{COLOR_END}"
 
     # if we have a package to upgrade
     # ex: php5 [5.3.10-2 -> 5.4.0-3
@@ -169,20 +170,20 @@ def upgrade full_upgrade = false
       print "update: #{package_name} "
 
       # print spaces between name and version of the package
-      (SPACESNAME - package_name.length).times do
+      (SPACES_NAME - package_name.length).times do
         print ' '
       end
 
       # version installed
-      print "#{COLORREMOVE}#{version_installed}#{COLOREND} "
+      print "#{COLOR_REMOVE}#{version_installed}#{COLOR_END} "
 
       # print spaces between version installed and version to install
-      (SPACESVERSION - version_installed.length).times do
+      (SPACES_VERSION - version_installed.length).times do
         print ' '
       end
 
       # version to install
-      puts "-> #{COLORINSTALL}#{version_to_install}#{COLOREND}"
+      puts "-> #{COLOR_INSTALL}#{version_to_install}#{COLOR_END}"
     end
 
   end
@@ -200,18 +201,18 @@ def upgrade full_upgrade = false
     exit 0
   end
 
-  if USESUDO
+  if USE_SUDO
     if full_upgrade
       system "sudo aptitude full-upgrade"
     else
-      system "sudo aptitude upgrade"
+      system "sudo aptitude safe-upgrade"
     end
 
   else
     if full_upgrade
       system "su -c 'aptitude full-upgrade'"
     else
-      system "su -c 'aptitude upgrade'"
+      system "su -c 'aptitude safe-upgrade'"
     end
   end
 end
@@ -243,7 +244,7 @@ def search package
 
     # if the package is installed, we display it in color
     if package_name.split.first.include? 'i'
-      puts "#{COLORINSTALL}#{package_name}#{COLOREND}"
+      puts "#{COLOR_INSTALL}#{package_name}#{COLOR_END}"
     else
       puts package_name
     end
@@ -251,7 +252,7 @@ def search package
     # display the description
     package_description.chomp!
     if !package_description.empty?
-      puts "\t#{COLORDESCRIPTION}#{package_description}#{COLOREND}"
+      puts "\t#{COLOR_DESCRIPTION}#{package_description}#{COLOR_END}"
     end
     
   end
@@ -266,7 +267,7 @@ def install package
 
   # if problem with dependencies, use aptitude
   if aptitude_string.include? '1)'
-    if USESUDO
+    if USE_SUDO
       system "sudo aptitude install #{package}"
     else
       system "su -c 'aptitude install #{package}'"
@@ -306,11 +307,11 @@ def install package
       print "install: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACESNAME - package_name.length).times do
+      (SPACES_NAME - package_name.length).times do
         print ' '
       end
       
-      puts "#{COLORINSTALL}#{package_version}#{COLOREND}"
+      puts "#{COLOR_INSTALL}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -328,7 +329,7 @@ def install package
     exit 0
   end
 
-  if USESUDO
+  if USE_SUDO
     system "sudo aptitude install #{package}"
   else
     system "su -c 'aptitude install #{package}'"
@@ -344,7 +345,7 @@ def remove package
 
   # if problem with dependencies, use aptitude
   if aptitude_string.include? '1)'
-    if USESUDO
+    if USE_SUDO
       system "sudo aptitude remove #{package}"
     else
       system "su -c 'aptitude remove #{package}'"
@@ -384,11 +385,11 @@ def remove package
       print "remove: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACESNAME - package_name.length).times do
+      (SPACES_NAME - package_name.length).times do
         print ' '
       end
       
-      puts "#{COLORREMOVE}#{package_version}#{COLOREND}"
+      puts "#{COLOR_REMOVE}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -406,7 +407,7 @@ def remove package
     exit 0
   end
 
-  if USESUDO
+  if USE_SUDO
     system "sudo aptitude remove #{package}"
   else
     system "su -c 'aptitude remove #{package}'"
@@ -415,13 +416,17 @@ end
 
 
 
-##########################
-##      execution       ##
-##########################
+#-----------------------------#
+#          execution          #
+#-----------------------------#
 
 case ARGV[0]
 
+  when 'safe-upgrade'
+    upgrade
+
   when 'upgrade'
+    puts "Warning: upgrade is deprecated, use safe-upgrade."
     upgrade
 
   when 'full-upgrade'
@@ -440,7 +445,7 @@ case ARGV[0]
     search packages_to_search
 
   when 'update'
-    if USESUDO
+    if USE_SUDO
       system "sudo aptitude update"
     else
       system "su -c 'aptitude update'"
