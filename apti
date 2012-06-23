@@ -6,7 +6,7 @@
 ****************************************************************************
 
   Apti is a frontend for aptitude with improved presentation of packages.
-  version: 0.1.2 (2012/06/21)
+  version: 0.2 (2012/06/23)
 
   Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
   
@@ -23,12 +23,6 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-  known issues:
-  - crash if apt-listbug found a bug
-    because of su -c 'commande' : http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=662983
-    fixed in apt-listbug 0.1.7
-
 ****************************************************************************
 =end
 
@@ -40,9 +34,6 @@ COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
 USE_SUDO          = false         # if false, use root password
-
-SPACES_NAME       = 40            # spaces between name and version of a package
-SPACES_VERSION    = 20            # spaces between version installed and version to install
 
 
 
@@ -67,6 +58,39 @@ end
 
 
 #
+# Return an hash with largest size of package name (max["name"]),
+# and largest size of package version (max["version"]).
+#
+def get_max_package packages 
+  max_name_size     = 0
+  max_version_size  = 0
+
+  packages.each do |ele|
+    if ele =~ /(([[:alnum:]]|-|\+|\.||\{|\})*) \[(([[:alnum:]]|-||\+|\.|:|~)*)/
+
+      package_name    = $1
+      package_version = $3
+
+      if package_name.length > max_name_size
+        max_name_size = package_name.length
+      end
+
+      if package_version.length > max_version_size
+        max_version_size = package_version.length
+      end
+
+    end
+  end
+
+  max             = Hash.new
+  max["name"]     = max_name_size
+  max["version"]  = max_version_size
+
+  return max
+end
+
+
+#
 # upgrade
 #
 def upgrade full_upgrade = false
@@ -77,7 +101,7 @@ def upgrade full_upgrade = false
   end
 
   # if problem with dependencies, use aptitude
-  if aptitude_string.include? '1)'
+  if aptitude_string.include? "1)"
 
     if USE_SUDO
       if full_upgrade
@@ -110,15 +134,20 @@ def upgrade full_upgrade = false
 
   # split packages
   packages = aptitude_string.split(']')
+
+  max             = get_max_package packages
+  largest_name    = max["name"]
+  largest_version = max["version"]
+
   packages.each do |ele|
 
     # if we have a package to install
     # ex: freepats{a} [20060219-1
-    if ele =~ /(([a-zA-Z]|[0-9]|-|\+|\.)*)\{a\}.*\[([:alnum:]|-)*/
-      package_name = $1
-      package_version = ele.split(' [').last
+    if ele =~ /(([[:alnum:]]|-|\+|\.)*\{a\}) \[(.*)/
+      package_name    = $1
+      package_version = $3
 
-      if first_install == false
+      if !first_install
         puts "\033[1mNew package(s) to install:\033[0m"
         first_install = true
       end
@@ -126,19 +155,19 @@ def upgrade full_upgrade = false
       print "install: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACES_NAME - package_name.length).times do
+      (largest_name - package_name.length).times do
         print ' '
       end
 
-      puts "#{COLOR_INSTALL}#{package_version}#{COLOR_END}"
+      puts " #{COLOR_INSTALL}#{package_version}#{COLOR_END}"
 
     # if we have a package to remove
     # ex: gcj-4.6-base{u} [4.6.3-1]
-    elsif ele =~ /(([a-zA-Z]|[0-9]|-|\+|\.)*)\{u\}.*\[([:alnum:]|-)*/
-      package_name = $1
-      package_version = ele.split(' [').last
+    elsif ele =~ /(([[:alnum:]]|-|\+|\.)*\{u\}) \[(.*)/
+      package_name    = $1
+      package_version = $3
 
-      if first_remove == false
+      if !first_remove
         puts "\n\033[1mPackage(s) to remove:\033[0m"
         first_remove = true
       end
@@ -146,22 +175,21 @@ def upgrade full_upgrade = false
       print "remove: #{package_name} "
 
       # print spaces between name and version of the package
-      (SPACES_NAME - package_name.length).times do
+      (largest_name - package_name.length).times do
         print ' '
       end
 
-      puts "#{COLOR_REMOVE}#{package_version}#{COLOR_END}"
+      puts " #{COLOR_REMOVE}#{package_version}#{COLOR_END}"
 
     # if we have a package to upgrade
     # ex: php5 [5.3.10-2 -> 5.4.0-3
-    elsif ele =~ /(([a-zA-Z]|[0-9]|-|\+|\.)* \[.* -> .*)/
-      package_info = $1
+    elsif ele =~ /(([[:alnum:]]|-|\+|\.)*) \[(.*) -> (.*)/
+      
+      package_name        = $1
+      version_installed   = $3
+      version_to_install  = $4
 
-      package_name        = package_info.split[0]
-      version_installed   = package_info.split[1].sub('[', '')
-      version_to_install  = package_info.split[3]
-
-      if first_update == false
+      if !first_update
         puts "\n\033[1mPackage(s) to update:\033[0m"
         first_update = true
       end
@@ -170,15 +198,15 @@ def upgrade full_upgrade = false
       print "update: #{package_name} "
 
       # print spaces between name and version of the package
-      (SPACES_NAME - package_name.length).times do
+      (largest_name - package_name.length).times do
         print ' '
       end
 
       # version installed
-      print "#{COLOR_REMOVE}#{version_installed}#{COLOR_END} "
+      print " #{COLOR_REMOVE}#{version_installed}#{COLOR_END} "
 
       # print spaces between version installed and version to install
-      (SPACES_VERSION - version_installed.length).times do
+      (largest_version - version_installed.length).times do
         print ' '
       end
 
@@ -227,10 +255,10 @@ def search package
   # for each package
   aptitude_string.each_line do |package|
     
-    package_str = package.split('- ')
+    package_str = package.split("- ")
 
     package_name = package_str.first
-    package_description = ''
+    package_description = ""
 
     # construct the description (all after the first '-')
     name_passed = false
@@ -266,7 +294,7 @@ def install package
   aptitude_string = `aptitude install -V -s --allow-untrusted --assume-yes #{package}`
 
   # if problem with dependencies, use aptitude
-  if aptitude_string.include? '1)'
+  if aptitude_string.include? "1)"
     if USE_SUDO
       system "sudo aptitude install #{package}"
     else
@@ -291,13 +319,17 @@ def install package
 
   # split packages
   packages = aptitude_string.split(']')
+
+  max             = get_max_package packages
+  largest_name    = max["name"]
+
   packages.each do |ele|
 
     # if we have a package to install
     # ex: freepats{a} [20060219-1 or freepats [20060219-1
-    if ele =~ /(([a-zA-Z]|[0-9]|-|\+|\.|\{|\})*.*)\[([:alnum:]|-)*/
-      package_name = $1
-      package_version = ele.split(' [').last
+    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(.*)/
+      package_name    = $1
+      package_version = $3
 
       if !first_install
         puts "\033[1mPackage(s) to install:\033[0m"
@@ -307,11 +339,11 @@ def install package
       print "install: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACES_NAME - package_name.length).times do
+      (largest_name - package_name.length).times do
         print ' '
       end
       
-      puts "#{COLOR_INSTALL}#{package_version}#{COLOR_END}"
+      puts " #{COLOR_INSTALL}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -344,7 +376,7 @@ def remove package
   aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
 
   # if problem with dependencies, use aptitude
-  if aptitude_string.include? '1)'
+  if aptitude_string.include? "1)"
     if USE_SUDO
       system "sudo aptitude remove #{package}"
     else
@@ -369,13 +401,17 @@ def remove package
 
   # split packages
   packages = aptitude_string.split(']')
+
+  max             = get_max_package packages
+  largest_name    = max["name"]
+
   packages.each do |ele|
 
     # if we have a package to remove
     # ex: freepats{u} [20060219-1 or freepats [20060219-1
-    if ele =~ /(([a-zA-Z]|[0-9]|-|\+|\.|\{|\})*.*)\[([:alnum:]|-)*/
-      package_name = $1
-      package_version = ele.split(' [').last
+    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(.*)/
+      package_name    = $1
+      package_version = $3
 
       if !first_remove
         puts "\033[1mPackage(s) to remove:\033[0m"
@@ -385,11 +421,11 @@ def remove package
       print "remove: #{package_name}"
 
       # print spaces between name and version of the package
-      (SPACES_NAME - package_name.length).times do
+      (largest_name - package_name.strip.length).times do
         print ' '
       end
       
-      puts "#{COLOR_REMOVE}#{package_version}#{COLOR_END}"
+      puts " #{COLOR_REMOVE}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -422,18 +458,18 @@ end
 
 case ARGV[0]
 
-  when 'safe-upgrade'
+  when "safe-upgrade"
     upgrade
 
-  when 'upgrade'
+  when "upgrade"
     puts "Warning: upgrade is deprecated, use safe-upgrade."
     upgrade
 
-  when 'full-upgrade'
+  when "full-upgrade"
     upgrade true
 
-  when 'search'
-    packages_to_search = ''
+  when "search"
+    packages_to_search = ""
     first_argv_passed = false
     ARGV.each do |package|
       if !first_argv_passed
@@ -444,15 +480,15 @@ case ARGV[0]
     end
     search packages_to_search
 
-  when 'update'
+  when "update"
     if USE_SUDO
       system "sudo aptitude update"
     else
       system "su -c 'aptitude update'"
     end
 
-  when 'remove'
-    packages_to_remove = ''
+  when "remove"
+    packages_to_remove = ""
     first_argv_passed = false
     ARGV.each do |package|
       if !first_argv_passed
@@ -463,8 +499,8 @@ case ARGV[0]
     end
     remove packages_to_remove
 
-  when 'install'
-    packages_to_install = ''
+  when "install"
+    packages_to_install = ""
     first_argv_passed = false
     ARGV.each do |package|
       if !first_argv_passed
@@ -475,13 +511,13 @@ case ARGV[0]
     end
     install packages_to_install
 
-  when '--help'
+  when "--help"
     help
 
   # other aptitude command
   else
     if ARGV[0] != nil
-      arg = ''
+      arg = ""
       ARGV.each do |ele|
         arg += "#{ele} "
       end
