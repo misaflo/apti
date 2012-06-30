@@ -6,7 +6,7 @@
 ****************************************************************************
 
   Apti is a frontend for aptitude with improved presentation of packages.
-  version: 0.2 (2012/06/23)
+  version: 0.2.1 (2012/06/30)
 
   Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
   
@@ -66,7 +66,7 @@ def get_max_package packages
   max_version_size  = 0
 
   packages.each do |ele|
-    if ele =~ /(([[:alnum:]]|-|\+|\.||\{|\})*) \[(([[:alnum:]]|-||\+|\.|:|~)*)/
+    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)/
 
       package_name    = $1
       package_version = $3
