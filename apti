@@ -1,12 +1,10 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-
 =begin
 ****************************************************************************
 
   Apti is a frontend for aptitude with improved presentation of packages.
-  version: 0.2.1 (2012/06/30)
 
   Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
   
@@ -26,6 +24,8 @@
 ****************************************************************************
 =end
 
+APTI_VERSION      = "0.2.1-dev (2012-07-05)"
+
 $VERBOSE          = true          # enable warnings
 
 COLOR_INSTALL     = "\033[1;32m"  # green
@@ -34,7 +34,6 @@ COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
 USE_SUDO          = false         # if false, use root password
-
 
 
 
@@ -54,6 +53,14 @@ def help
   puts "  install package"
   puts "  remove package"
   puts "  others aptitude commande..."
+end
+
+
+#
+# version
+#
+def version
+  puts "apti #{APTI_VERSION}"
 end
 
 
@@ -513,6 +520,9 @@ case ARGV[0]
 
   when "--help"
     help
+
+  when "--version"
+    version
 
   # other aptitude command
   else
