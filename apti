@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.1-dev (2012-07-05)"
+APTI_VERSION      = "0.2.1-dev (2012-08-09)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -53,6 +53,7 @@ def help
   puts "  install package"
   puts "  remove package"
   puts "  others aptitude commande..."
+  puts "  --stats"
 end
 
 
@@ -458,6 +459,24 @@ def remove package
 end
 
 
+#
+# Print stats about packages
+#
+def stats
+  packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
+  packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
+  cache_size                    = `du -sh /var/cache/apt/archives/ | cut -f 1`
+
+  if File.exist? "/etc/debian_version"
+    puts "Debian #{`cat /etc/debian_version`}\n"
+  end
+
+  puts "Total installed packages:         #{packages_installed}"
+  puts "Explicitly installed packages:    #{packages_installed_explicitly}"
+  puts "Space used by packages in cache:  #{cache_size}"
+end
+
+
 
 #-----------------------------#
 #          execution          #
@@ -517,6 +536,9 @@ case ARGV[0]
       end
     end
     install packages_to_install
+
+  when "--stats"
+    stats
 
   when "--help"
     help
