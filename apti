@@ -233,7 +233,7 @@ def upgrade full_upgrade = false
     end
   end
 
-  if answer.downcase.equal? 'n'
+  if answer.downcase.eql? 'n'
     exit 0
   end
 
@@ -361,7 +361,7 @@ def install package
     end
   end
 
-  if answer.downcase == 'n'
+  if answer.downcase.eql? 'n'
     exit 0
   end
 
@@ -439,7 +439,7 @@ def remove package
     end
   end
 
-  if answer.downcase == 'n'
+  if answer.downcase.eql? 'n'
     exit 0
   end
 
@@ -493,7 +493,7 @@ case ARGV[0]
       if !first_argv_passed
         first_argv_passed = true
       else
-        packages_to_search += " #{package}"
+        packages_to_search.concat " #{package}"
       end
     end
     search packages_to_search
@@ -512,7 +512,7 @@ case ARGV[0]
       if !first_argv_passed
         first_argv_passed = true
       else
-        packages_to_remove += " #{package}"
+        packages_to_remove.concat " #{package}"
       end
     end
     remove packages_to_remove
@@ -524,7 +524,7 @@ case ARGV[0]
       if !first_argv_passed
         first_argv_passed = true
       else
-        packages_to_install += " #{package}"
+        packages_to_install.concat " #{package}"
       end
     end
     install packages_to_install
@@ -543,7 +543,7 @@ case ARGV[0]
     if ARGV[0] != nil
       arg = ""
       ARGV.each do |ele|
-        arg += "#{ele} "
+        arg.concat "#{ele} "
       end
       system "aptitude #{arg}"
     else
