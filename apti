@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2"
+APTI_VERSION      = "0.2.2-dev (2012-10-17)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -99,33 +99,32 @@ end
 
 
 #
+# Execute the command with sudo or su -c.
+#
+def execute_command command
+  if USE_SUDO
+    system "sudo #{command}"
+  else
+    system "su -c '#{command}'"
+  end
+end
+
+
+#
 # upgrade
 #
 def upgrade full_upgrade = false
   if full_upgrade
     aptitude_string = `aptitude full-upgrade -V -s --allow-untrusted --assume-yes`
+    command = "aptitude full-upgrade"
   else
     aptitude_string = `aptitude safe-upgrade -V -s --allow-untrusted --assume-yes`
+    command = "aptitude safe-upgrade"
   end
 
   # if problem with dependencies, use aptitude
   if aptitude_string.include? "1)"
-
-    if USE_SUDO
-      if full_upgrade
-        system "sudo aptitude full-upgrade"
-      else
-        system "sudo aptitude safe-upgrade"
-      end
-
-    else
-      if full_upgrade
-        system "su -c 'aptitude full-upgrade'"
-      else
-        system "su -c 'aptitude safe-upgrade'"
-      end
-    end
-
+    execute_command command
     exit 0
 
   # if there is no package to upgrade
@@ -233,23 +232,8 @@ def upgrade full_upgrade = false
     end
   end
 
-  if answer.downcase.eql? 'n'
-    exit 0
-  end
-
-  if USE_SUDO
-    if full_upgrade
-      system "sudo aptitude full-upgrade"
-    else
-      system "sudo aptitude safe-upgrade"
-    end
-
-  else
-    if full_upgrade
-      system "su -c 'aptitude full-upgrade'"
-    else
-      system "su -c 'aptitude safe-upgrade'"
-    end
+  if !answer.downcase.eql? 'n'
+    execute_command command
   end
 end
 
@@ -300,15 +284,12 @@ end
 #
 def install package
   aptitude_string = `aptitude install -V -s --allow-untrusted --assume-yes #{package}`
+  command = "aptitude install #{package}"
 
   # if problem with dependencies, wrong name given,
   # or trying to install a virtual package : use aptitude
   if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    if USE_SUDO
-      system "sudo aptitude install #{package}"
-    else
-      system "su -c 'aptitude install #{package}'"
-    end
+    execute_command command
     exit 0
 
   # if the package is already installed
@@ -361,14 +342,8 @@ def install package
     end
   end
 
-  if answer.downcase.eql? 'n'
-    exit 0
-  end
-
-  if USE_SUDO
-    system "sudo aptitude install #{package}"
-  else
-    system "su -c 'aptitude install #{package}'"
+  if !answer.downcase.eql? 'n'
+    execute_command command
   end
 end
 
@@ -378,15 +353,12 @@ end
 #
 def remove package
   aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
+  command = "aptitude remove #{package}"
 
   # if problem with dependencies, wrong name given,
   # or trying to remove a virtual package : use aptitude
   if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    if USE_SUDO
-      system "sudo aptitude remove #{package}"
-    else
-      system "su -c 'aptitude remove #{package}'"
-    end
+    execute_command command
     exit 0
 
   # if the package is not installed
@@ -439,20 +411,14 @@ def remove package
     end
   end
 
-  if answer.downcase.eql? 'n'
-    exit 0
-  end
-
-  if USE_SUDO
-    system "sudo aptitude remove #{package}"
-  else
-    system "su -c 'aptitude remove #{package}'"
+  if !answer.downcase.eql? 'n'
+    execute_command command
   end
 end
 
 
 #
-# Print stats about packages
+# Print stats about packages.
 #
 def stats
   packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
@@ -499,11 +465,7 @@ case ARGV[0]
     search packages_to_search
 
   when "update"
-    if USE_SUDO
-      system "sudo aptitude update"
-    else
-      system "su -c 'aptitude update'"
-    end
+    execute_command "aptitude update"
 
   when "remove"
     packages_to_remove = ""
