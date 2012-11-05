@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-10-17)"
+APTI_VERSION      = "0.2.2-dev (2012-11-05)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -351,9 +351,14 @@ end
 #
 # remove
 #
-def remove package
-  aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
-  command = "aptitude remove #{package}"
+def remove(package, purge = false)
+  if purge
+    aptitude_string = `aptitude purge -V -s --assume-yes #{package}`
+    command = "aptitude purge #{package}"
+  else
+    aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
+    command = "aptitude remove #{package}"
+  end
 
   # if problem with dependencies, wrong name given,
   # or trying to remove a virtual package : use aptitude
@@ -440,6 +445,16 @@ end
 #          execution          #
 #-----------------------------#
 
+packages = ""
+first_argv_passed = false
+ARGV.each do |package|
+  if !first_argv_passed
+    first_argv_passed = true
+  else
+    packages.concat " #{package}"
+  end
+end
+
 case ARGV[0]
 
   when "safe-upgrade"
@@ -453,43 +468,19 @@ case ARGV[0]
     upgrade true
 
   when "search"
-    packages_to_search = ""
-    first_argv_passed = false
-    ARGV.each do |package|
-      if !first_argv_passed
-        first_argv_passed = true
-      else
-        packages_to_search.concat " #{package}"
-      end
-    end
-    search packages_to_search
+    search packages
 
   when "update"
     execute_command "aptitude update"
 
   when "remove"
-    packages_to_remove = ""
-    first_argv_passed = false
-    ARGV.each do |package|
-      if !first_argv_passed
-        first_argv_passed = true
-      else
-        packages_to_remove.concat " #{package}"
-      end
-    end
-    remove packages_to_remove
+    remove packages
+
+  when "purge"
+    remove(packages, true)
 
   when "install"
-    packages_to_install = ""
-    first_argv_passed = false
-    ARGV.each do |package|
-      if !first_argv_passed
-        first_argv_passed = true
-      else
-        packages_to_install.concat " #{package}"
-      end
-    end
-    install packages_to_install
+    install packages
 
   when "--stats"
     stats
