@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-05)"
+APTI_VERSION      = "0.2.2-dev (2012-11-07)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -33,6 +33,7 @@ COLOR_REMOVE      = "\033[1;31m"  # red
 COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
+SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
 USE_SUDO          = false         # if false, use root password
 
 
@@ -249,7 +250,7 @@ def search package
     
     package_str = package.split "- "
 
-    package_name = package_str.first
+    package_name = package_str.first # ex: i A aptitude-common
     package_description = ""
 
     # construct the description (all after the first '-')
@@ -262,19 +263,36 @@ def search package
       end
     end
 
-    # if the package is installed, we display it in color
-    if package_name.split.first.include? 'i'
-      puts "#{COLOR_INSTALL}#{package_name}#{COLOR_END}"
+    # informations of the package: i, p, A, ...
+    package_info = package_name.split
+    package_info.pop
+    package_info = package_info.join(' ')
+
+    # just the package name (without informations)
+    package_name = package_name.split.last
+
+    # display package informations
+    print package_info
+
+    # print spaces between package_info and package_name
+    (6 - package_info.length).times do
+      print ' '
+    end
+
+    # display package name: if the package is installed, we display it in color
+    if package_info.include? 'i'
+      print "#{COLOR_INSTALL}#{package_name}#{COLOR_END}"
     else
-      puts package_name
+      print package_name
+    end
+
+    # print spaces between package_name and package_description
+    (SPACES_SEARCH - package_name.length).times do
+      print ' '
     end
 
     # display the description
-    package_description.chomp!
-    if !package_description.empty?
-      puts "\t#{COLOR_DESCRIPTION}#{package_description}#{COLOR_END}"
-    end
-    
+    puts "#{COLOR_DESCRIPTION}#{package_description.chomp}#{COLOR_END}"
   end
 end
 
