@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-07)"
+APTI_VERSION      = "0.2.2-dev (2012-11-08)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -33,8 +33,8 @@ COLOR_REMOVE      = "\033[1;31m"  # red
 COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
-SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
 USE_SUDO          = false         # if false, use root password
+SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
 
 
 
@@ -244,6 +244,8 @@ end
 #
 def search package
   aptitude_string = `aptitude search --disable-columns #{package}`
+  terminal_width  = `tput cols`.to_i
+  package_info_length = 6 # information size (i, p, A, ...) : 6 seems to be good
 
   # for each package
   aptitude_string.each_line do |package|
@@ -275,7 +277,7 @@ def search package
     print package_info
 
     # print spaces between package_info and package_name
-    (6 - package_info.length).times do
+    (package_info_length - package_info.length).times do
       print ' '
     end
 
@@ -291,6 +293,13 @@ def search package
       print ' '
     end
 
+    size_of_line = package_info_length + SPACES_SEARCH + package_description.length
+
+    # if description is too long, we shorten it
+    if size_of_line > terminal_width
+      package_description = package_description[0..(terminal_width - package_info_length - SPACES_SEARCH - 1)]
+    end
+    
     # display the description
     puts "#{COLOR_DESCRIPTION}#{package_description.chomp}#{COLOR_END}"
   end
