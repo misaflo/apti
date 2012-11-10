@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-08)"
+APTI_VERSION      = "0.2.2-dev (2012-11-09)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -33,9 +33,7 @@ COLOR_REMOVE      = "\033[1;31m"  # red
 COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
-USE_SUDO          = false         # if false, use root password
 SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
-
 
 
 #-----------------------------#
@@ -103,7 +101,7 @@ end
 # Execute the command with sudo or su -c.
 #
 def execute_command command
-  if USE_SUDO
+  if `groups`.split.include? "sudo"
     system "sudo #{command}"
   else
     system "su -c '#{command}'"
@@ -116,10 +114,10 @@ end
 #
 def upgrade full_upgrade = false
   if full_upgrade
-    aptitude_string = `aptitude full-upgrade -V -s --allow-untrusted --assume-yes`
+    aptitude_string = `aptitude full-upgrade -Vs --allow-untrusted --assume-yes`
     command = "aptitude full-upgrade"
   else
-    aptitude_string = `aptitude safe-upgrade -V -s --allow-untrusted --assume-yes`
+    aptitude_string = `aptitude safe-upgrade -Vs --allow-untrusted --assume-yes`
     command = "aptitude safe-upgrade"
   end
 
@@ -310,7 +308,7 @@ end
 # install
 #
 def install package
-  aptitude_string = `aptitude install -V -s --allow-untrusted --assume-yes #{package}`
+  aptitude_string = `aptitude install -Vs --allow-untrusted --assume-yes #{package}`
   command = "aptitude install #{package}"
 
   # if problem with dependencies, wrong name given,
@@ -380,10 +378,10 @@ end
 #
 def remove(package, purge = false)
   if purge
-    aptitude_string = `aptitude purge -V -s --assume-yes #{package}`
+    aptitude_string = `aptitude purge -Vs --assume-yes #{package}`
     command = "aptitude purge #{package}"
   else
-    aptitude_string = `aptitude remove -V -s --assume-yes #{package}`
+    aptitude_string = `aptitude remove -Vs --assume-yes #{package}`
     command = "aptitude remove #{package}"
   end
 
