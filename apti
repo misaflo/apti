@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-09)"
+APTI_VERSION      = "0.2.2-dev (2012-11-10)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -219,8 +219,10 @@ def upgrade full_upgrade = false
       # version to install
       puts "-> #{COLOR_INSTALL}#{version_to_install}#{COLOR_END}"
     end
-
   end
+
+  # size to download and install
+  puts "\n#{aptitude_string.split(/\n/)[-2]}"
 
   answer = ''
   while !answer.downcase.eql? 'y' and !answer.downcase.eql? 'n'
@@ -358,6 +360,9 @@ def install package
     end
   end
 
+  # size to download and install
+  puts "\n#{aptitude_string.split(/\n/)[-2]}"
+
   answer = ''
   while !answer.downcase.eql? 'y' and !answer.downcase.eql? 'n'
     print "\n\033[1mContinue the installation ? (Y/n)\033[0m "
@@ -431,6 +436,9 @@ def remove(package, purge = false)
 
     end
   end
+
+  # size free
+  puts "\n#{aptitude_string.split(/\n/)[-2]}"
 
   answer = ''
   while !answer.downcase.eql? 'y' and !answer.downcase.eql? 'n'
