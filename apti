@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-10)"
+APTI_VERSION      = "0.2.2-dev (2012-11-14)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -463,9 +463,7 @@ def stats
   packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
   cache_size                    = `du -sh /var/cache/apt/archives/ | cut -f 1`
 
-  if File.exist? "/etc/debian_version"
-    puts "Debian #{`cat /etc/debian_version`}\n"
-  end
+  puts "#{`lsb_release -ds`}\n"
 
   puts "Total installed packages:         #{packages_installed}"
   puts "Explicitly installed packages:    #{packages_installed_explicitly}"
