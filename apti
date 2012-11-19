@@ -24,7 +24,7 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-14)"
+APTI_VERSION      = "0.2.2-dev (2012-11-19)"
 
 $VERBOSE          = true          # enable warnings
 
@@ -34,6 +34,7 @@ COLOR_DESCRIPTION = "\033[1;30m"  # gray
 COLOR_END         = "\033[0m"
 
 SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
+NO_CONFIRM        = false         # if true, don't ask for confirmation
 
 
 #-----------------------------#
@@ -100,11 +101,20 @@ end
 #
 # Execute the command with sudo or su -c.
 #
-def execute_command command
+def execute_command(command, no_confirm = false)
   if `groups`.split.include? "sudo"
-    system "sudo #{command}"
+    if no_confirm and NO_CONFIRM
+      system "sudo #{command} --assume-yes"
+    else
+      system "sudo #{command}"
+    end
+
   else
-    system "su -c '#{command}'"
+    if no_confirm and NO_CONFIRM
+      system "su -c '#{command} --assume-yes'"
+    else
+      system "su -c '#{command}'"
+    end
   end
 end
 
@@ -234,7 +244,7 @@ def upgrade full_upgrade = false
   end
 
   if !answer.downcase.eql? 'n'
-    execute_command command
+    execute_command(command, true)
   end
 end
 
@@ -373,7 +383,7 @@ def install package
   end
 
   if !answer.downcase.eql? 'n'
-    execute_command command
+    execute_command(command, true)
   end
 end
 
@@ -450,7 +460,7 @@ def remove(package, purge = false)
   end
 
   if !answer.downcase.eql? 'n'
-    execute_command command
+    execute_command(command, true)
   end
 end
 
