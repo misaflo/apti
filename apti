@@ -24,17 +24,9 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-19)"
-
-$VERBOSE          = true          # enable warnings
-
-COLOR_INSTALL     = "\033[1;32m"  # green
-COLOR_REMOVE      = "\033[1;31m"  # red
-COLOR_DESCRIPTION = "\033[1;30m"  # gray
-COLOR_END         = "\033[0m"
-
-SPACES_SEARCH     = 40            # spaces with "search" between package name and his description
-NO_CONFIRM        = false         # if true, don't ask for confirmation
+APTI_VERSION      = "0.2.2-dev (2012-11-29)"
+$VERBOSE          = true  # enable warnings
+COLOR_END         = "\e[0m"
 
 
 #-----------------------------#
@@ -103,14 +95,14 @@ end
 #
 def execute_command(command, no_confirm = false)
   if `groups`.split.include? "sudo"
-    if no_confirm and NO_CONFIRM
+    if no_confirm and $no_confirm
       system "sudo #{command} --assume-yes"
     else
       system "sudo #{command}"
     end
 
   else
-    if no_confirm and NO_CONFIRM
+    if no_confirm and $no_confirm
       system "su -c '#{command} --assume-yes'"
     else
       system "su -c '#{command}'"
@@ -122,13 +114,13 @@ end
 #
 # upgrade
 #
-def upgrade full_upgrade = false
+def upgrade(packages, full_upgrade = false)
   if full_upgrade
-    aptitude_string = `aptitude full-upgrade -Vs --allow-untrusted --assume-yes`
-    command = "aptitude full-upgrade"
+    aptitude_string = `aptitude full-upgrade -Vs --allow-untrusted --assume-yes #{packages}`
+    command = "aptitude full-upgrade #{packages}"
   else
-    aptitude_string = `aptitude safe-upgrade -Vs --allow-untrusted --assume-yes`
-    command = "aptitude safe-upgrade"
+    aptitude_string = `aptitude safe-upgrade -Vs --allow-untrusted --assume-yes #{packages}`
+    command = "aptitude safe-upgrade #{packages}"
   end
 
   # if problem with dependencies, use aptitude
@@ -175,7 +167,7 @@ def upgrade full_upgrade = false
         print ' '
       end
 
-      puts " #{COLOR_INSTALL}#{package_version}#{COLOR_END}"
+      puts " #{$color_install}#{package_version}#{COLOR_END}"
 
     # if we have a package to remove
     # ex: gcj-4.6-base{u} [4.6.3-1]
@@ -195,7 +187,7 @@ def upgrade full_upgrade = false
         print ' '
       end
 
-      puts " #{COLOR_REMOVE}#{package_version}#{COLOR_END}"
+      puts " #{$color_remove}#{package_version}#{COLOR_END}"
 
     # if we have a package to upgrade
     # ex: php5 [5.3.10-2 -> 5.4.0-3
@@ -219,7 +211,7 @@ def upgrade full_upgrade = false
       end
 
       # version installed
-      print " #{COLOR_REMOVE}#{version_installed}#{COLOR_END} "
+      print " #{$color_remove}#{version_installed}#{COLOR_END} "
 
       # print spaces between version installed and version to install
       (largest_version - version_installed.length).times do
@@ -227,7 +219,7 @@ def upgrade full_upgrade = false
       end
 
       # version to install
-      puts "-> #{COLOR_INSTALL}#{version_to_install}#{COLOR_END}"
+      puts "-> #{$color_install}#{version_to_install}#{COLOR_END}"
     end
   end
 
@@ -293,25 +285,25 @@ def search package
 
     # display package name: if the package is installed, we display it in color
     if package_info.include? 'i'
-      print "#{COLOR_INSTALL}#{package_name}#{COLOR_END}"
+      print "#{$color_install}#{package_name}#{COLOR_END}"
     else
       print package_name
     end
 
     # print spaces between package_name and package_description
-    (SPACES_SEARCH - package_name.length).times do
+    ($spaces_search - package_name.length).times do
       print ' '
     end
 
-    size_of_line = package_info_length + SPACES_SEARCH + package_description.length
+    size_of_line = package_info_length + $spaces_search + package_description.length
 
     # if description is too long, we shorten it
     if size_of_line > terminal_width
-      package_description = package_description[0..(terminal_width - package_info_length - SPACES_SEARCH - 1)]
+      package_description = package_description[0..(terminal_width - package_info_length - $spaces_search - 1)]
     end
     
     # display the description
-    puts "#{COLOR_DESCRIPTION}#{package_description.chomp}#{COLOR_END}"
+    puts "#{$color_description}#{package_description.chomp}#{COLOR_END}"
   end
 end
 
@@ -365,7 +357,7 @@ def install package
         print ' '
       end
       
-      puts " #{COLOR_INSTALL}#{package_version}#{COLOR_END}"
+      puts " #{$color_install}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -442,7 +434,7 @@ def remove(package, purge = false)
         print ' '
       end
       
-      puts " #{COLOR_REMOVE}#{package_version}#{COLOR_END}"
+      puts " #{$color_remove}#{package_version}#{COLOR_END}"
 
     end
   end
@@ -481,10 +473,69 @@ def stats
 end
 
 
+#
+# Write configuration file.
+#
+def write_config config_dir
+  config = "#!/usr/bin/env ruby\n\n" +
+      "# color\n" +
+      "COLOR_INSTALL      = \"\\e[1;32m\" # green\n" +
+      "COLOR_REMOVE       = \"\\e[1;31m\" # red\n" +
+      "COLOR_DESCRIPTION  = \"\\e[1;30m\" # gray\n\n" +
+      "# config\n" +
+      "SPACES_SEARCH      = 40    # spaces with \"search\" between package name and his description\n" +
+      "NO_CONFIRM         = false # if true, don't ask for confirmation\n"
+
+
+  if !File.directory? "#{config_dir}/apti"
+    Dir.mkdir "#{config_dir}/apti"
+  end
+
+  File.open("#{config_dir}/apti/aptirc.rb", "w") do |f|
+    f.write(config)
+  end
+end
+
+
+#
+# Read configuration file.
+#
+def read_config config_dir
+  require "#{config_dir}/apti/aptirc.rb"
+
+  $color_install     = COLOR_INSTALL
+  $color_remove      = COLOR_REMOVE
+  $color_description = COLOR_DESCRIPTION
+  $spaces_search     = SPACES_SEARCH
+  $no_confirm        = NO_CONFIRM
+end
+
+
+#
+# Return the config directory.
+#
+def get_config_dir
+  if ENV["XDG_CONFIG_HOME"].nil?
+    return "#{ENV["HOME"]}/.config"
+  else
+    return ENV["XDG_CONFIG_HOME"]
+  end
+end
+
+
 
 #-----------------------------#
 #          execution          #
 #-----------------------------#
+
+config_dir = get_config_dir
+
+if !File.exist?("#{config_dir}/apti/aptirc.rb")
+  write_config config_dir
+end
+
+read_config config_dir
+
 
 packages = ""
 first_argv_passed = false
@@ -499,14 +550,14 @@ end
 case ARGV[0]
 
   when "safe-upgrade"
-    upgrade
+    upgrade packages
 
   when "upgrade"
     puts "Warning: upgrade is deprecated, use safe-upgrade."
-    upgrade
+    upgrade packages
 
   when "full-upgrade"
-    upgrade true
+    upgrade(packages, true)
 
   when "search"
     search packages
