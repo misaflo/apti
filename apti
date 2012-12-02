@@ -24,7 +24,9 @@
 ****************************************************************************
 =end
 
-APTI_VERSION      = "0.2.2-dev (2012-11-29)"
+# Configuration in ~/.local/apti/aptirc.rb (by default)
+
+APTI_VERSION      = "0.3"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 
