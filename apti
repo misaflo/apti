@@ -6,7 +6,7 @@
 
   Apti is a frontend for aptitude with improved presentation of packages.
 
-  Copyright (C) 2012 by Florent Lévigne <florent.levigne at mailoo dot com>
+  Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>
   
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 # Configuration in ~/.local/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3"
+APTI_VERSION      = "0.3-dev (2013-01-05)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 
@@ -479,6 +479,8 @@ end
 # Write configuration file.
 #
 def write_config config_dir
+  require "fileutils"
+
   config = "#!/usr/bin/env ruby\n\n" +
       "# color\n" +
       "COLOR_INSTALL      = \"\\e[1;32m\" # green\n" +
@@ -490,7 +492,7 @@ def write_config config_dir
 
 
   if !File.directory? "#{config_dir}/apti"
-    Dir.mkdir "#{config_dir}/apti"
+    FileUtils.mkdir_p "#{config_dir}/apti"
   end
 
   File.open("#{config_dir}/apti/aptirc.rb", "w") do |f|
