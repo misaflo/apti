@@ -26,7 +26,7 @@
 
 # Configuration in ~/.local/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-01-26)"
+APTI_VERSION      = "0.3-dev (2013-02-03)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -591,8 +591,12 @@ case ARGV[0]
 
   when "--help"
     help
+  when "-h"
+    help
 
   when "--version"
+    version
+  when "-v"
     version
 
   # other aptitude command
