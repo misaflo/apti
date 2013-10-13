@@ -7,32 +7,32 @@
   Apti is a frontend for aptitude with improved presentation of packages.
 
   Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>
-  
+
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ****************************************************************************
 =end
 
-# Configuration in ~/.local/apti/aptirc.rb (by default)
+# Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-02-03)"
+APTI_VERSION      = "0.3-dev (2013-10-13)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
-                        "markauto", "unmarkauto", "build-depends", "build-dep", "forbid-version",
-                        "update", "safe-upgrade", "full-upgrade", "keep-all", "forget-new",
-                        "clean", "autoclean"]
+                         "markauto", "unmarkauto", "build-depends", "build-dep", "forbid-version",
+                         "update", "safe-upgrade", "full-upgrade", "keep-all", "forget-new",
+                         "clean", "autoclean"]
 
 
 #-----------------------------#
@@ -97,6 +97,46 @@ end
 
 
 #
+# print header for install, remove and upgrade
+#
+def print_header(largest_name, largest_version, display_version = true)
+  terminal_width  = `tput cols`.to_i
+
+  terminal_width.times do
+    print '='
+  end
+  print "\n"
+
+  header_package = "Package"
+  header_version = "Version"
+  header_size    = "Size"
+
+  # Package
+  print "  #{header_package}"
+  (largest_name - header_package.length + $spaces_between_columns).times do
+    print ' '
+  end
+
+  # Version
+  print header_version
+
+  # Size
+  if $display_packages_size and display_version
+    (largest_version - header_version.length + $spaces_between_columns).times do
+      print ' '
+  end
+    print header_size
+  end
+  print "\n"
+
+  terminal_width.times do
+    print '='
+  end
+  print "\n"
+end
+
+
+#
 # Execute the command with superuser rights if needed.
 #
 def execute_command(command, no_confirm = false)
@@ -157,71 +197,73 @@ def upgrade(packages, full_upgrade = false)
   largest_name    = max["name"]
   largest_version = max["version"]
 
+  print_header(largest_name, largest_version, false)
+
   packages.each do |ele|
 
     # if we have a package to install
     # ex: freepats{a} [20060219-1
-    if ele =~ /(([[:alnum:]]|-|\+|\.)*\{a\}) \[(.*)/
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\}) \[(.*)/
       package_name    = $1
-      package_version = $3
+      package_version = $4
 
       if not first_install
-        puts "\033[1mNew package(s) to install:\033[0m"
+        puts "\033[1mInstalling:\033[0m"
         first_install = true
       end
 
-      print "install: #{package_name}"
+      print "  #{package_name}"
 
       # print spaces between name and version of the package
-      (largest_name - package_name.length).times do
+      (largest_name - package_name.length + $spaces_between_columns).times do
         print ' '
       end
 
-      puts " #{$color_install}#{package_version}#{COLOR_END}"
+      puts "#{$color_install}#{package_version}#{COLOR_END}"
 
     # if we have a package to remove
     # ex: gcj-4.6-base{u} [4.6.3-1]
-    elsif ele =~ /(([[:alnum:]]|-|\+|\.)*\{u\}) \[(.*)/
+    elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\}) \[(.*)/
       package_name    = $1
-      package_version = $3
+      package_version = $4
 
       if not first_remove
-        puts "\n\033[1mPackage(s) to remove:\033[0m"
+        puts "\n\033[1mRemoving:\033[0m"
         first_remove = true
       end
 
-      print "remove: #{package_name} "
+      print "  #{package_name} "
 
       # print spaces between name and version of the package
-      (largest_name - package_name.length).times do
+      (largest_name - package_name.length + $spaces_between_columns).times do
         print ' '
       end
 
-      puts " #{$color_remove}#{package_version}#{COLOR_END}"
+      puts "#{$color_remove}#{package_version}#{COLOR_END}"
 
     # if we have a package to upgrade
     # ex: php5 [5.3.10-2 -> 5.4.0-3
-    elsif ele =~ /(([[:alnum:]]|-|\+|\.)*) \[(.*) -> (.*)/
-      
+    elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*) \[(.*) -> (.*)/
+
       package_name        = $1
       version_installed   = $3
       version_to_install  = $4
 
       if not first_update
-        puts "\n\033[1mPackage(s) to update:\033[0m"
+        puts "\n\033[1mUpdating:\033[0m"
         first_update = true
       end
-      
+
       # package name
-      print "update: #{package_name} "
+      print "  #{package_name} "
 
       # print spaces between name and version of the package
-      (largest_name - package_name.length).times do
+      (largest_name - package_name.length + $spaces_between_columns).times do
         print ' '
       end
 
       # version installed
-      print " #{$color_remove}#{version_installed}#{COLOR_END} "
+      print "#{$color_remove}#{version_installed}#{COLOR_END} "
 
       # print spaces between version installed and version to install
       (largest_version - version_installed.length).times do
@@ -260,9 +302,9 @@ def search package
   package_info_length = 6 # information size (i, p, A, ...) : 6 seems to be good
 
   # for each package
-  aptitude_string.each_line do |package|
-    
-    package_str = package.split "- "
+  aptitude_string.each_line do |package_line|
+
+    package_str = package_line.split "- "
 
     package_name = package_str.first # ex: i A aptitude-common
     package_description = ""
@@ -311,7 +353,7 @@ def search package
     if size_of_line > terminal_width
       package_description = package_description[0..(terminal_width - package_info_length - $spaces_search - 1)]
     end
-    
+
     # display the description
     puts "#{$color_description}#{package_description.chomp}#{COLOR_END}"
   end
@@ -322,7 +364,7 @@ end
 # install
 #
 def install package
-  aptitude_string = `aptitude install -Vs --allow-untrusted --assume-yes #{package}`
+  aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
   command = "aptitude install #{package}"
 
   # if problem with dependencies, wrong name given,
@@ -339,35 +381,62 @@ def install package
 
   packages = [[]]
 
-  first_install = false
+  first_install_explicitly = false
+  first_install_as_dep = false
 
   # split packages
-  packages = aptitude_string.split ']'
+  packages = aptitude_string.split '>'
+
+  packages_installed_explicitly = packages.reject { |pack| pack =~ /\{a\}/ }
+  packages_installed_as_dep = packages - packages_installed_explicitly
+
+  packages = packages_installed_explicitly + packages_installed_as_dep
 
   max             = get_max_package packages
   largest_name    = max["name"]
+  largest_version = max["version"]
+
+  print_header(largest_name, largest_version)
 
   packages.each do |ele|
 
     # if we have a package to install
-    # ex: freepats{a} [20060219-1 or freepats [20060219-1
-    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(.*)/
-      package_name    = $1
-      package_version = $3
+    # ex: brasero [3.8.0-2] <+1 113 kB> or  brasero{a} [3.8.0-2] <+1 113 kB>
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\})? \[(.*)\] <(.*)/
+      package_name          = $1
+      package_install_auto  = $3
+      package_version       = $4
+      package_size          = $5
 
-      if not first_install
-        puts "\033[1mPackage(s) to install:\033[0m"
-        first_install = true
+      if not first_install_explicitly
+        puts "\033[1mInstalling:\033[0m"
+        first_install_explicitly = true
       end
 
-      print "install: #{package_name}"
+      if (not first_install_as_dep) and (not package_install_auto.nil?)
+        puts "\n\033[1mInstalling for dependencies:\033[0m"
+        first_install_as_dep = true
+      end
+
+      print "  #{package_name}"
 
       # print spaces between name and version of the package
-      (largest_name - package_name.length).times do
+      (largest_name - package_name.length + $spaces_between_columns).times do
         print ' '
       end
-      
-      puts " #{$color_install}#{package_version}#{COLOR_END}"
+
+      print "#{$color_install}#{package_version}#{COLOR_END}"
+
+      if $display_packages_size
+        # print spaces between version and size
+        (largest_version - package_version.length + $spaces_between_columns).times do
+          print ' '
+        end
+
+        print "#{$color_description}#{package_size}#{COLOR_END}"
+      end
+
+      print "\n"
 
     end
   end
@@ -389,16 +458,15 @@ def install package
   end
 end
 
-
 #
 # remove
 #
 def remove(package, purge = false)
   if purge
-    aptitude_string = `aptitude purge -Vs --assume-yes #{package}`
+    aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
     command = "aptitude purge #{package}"
   else
-    aptitude_string = `aptitude remove -Vs --assume-yes #{package}`
+    aptitude_string = `aptitude remove -VZs --assume-yes #{package}`
     command = "aptitude remove #{package}"
   end
 
@@ -416,35 +484,57 @@ def remove(package, purge = false)
 
   packages = [[]]
 
-  first_remove = false
+  first_remove_explicitly = false
+  first_remove_dep = false
 
   # split packages
-  packages = aptitude_string.split ']'
+  packages = aptitude_string.split '>'
 
   max             = get_max_package packages
   largest_name    = max["name"]
+  largest_version = max["version"]
+
+  print_header(largest_name, largest_version)
 
   packages.each do |ele|
 
     # if we have a package to remove
-    # ex: freepats{u} [20060219-1 or freepats [20060219-1
-    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(.*)/
-      package_name    = $1
-      package_version = $3
+    # ex: freepats{u} [20060219-1] <-1 113 kB> or freepats [20060219-1] <-1 113 kB>
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})? \[(.*)\] <(.*)/
+      package_name        = $1
+      package_remove_dep  = $3
+      package_version     = $4
+      package_size        = $5
 
-      if not first_remove
-        puts "\033[1mPackage(s) to remove:\033[0m"
-        first_remove = true
+      if not first_remove_explicitly
+        puts "\033[1mRemoving:\033[0m"
+        first_remove_explicitly = true
       end
 
-      print "remove: #{package_name}"
+      if (not first_remove_dep) and (not package_remove_dep.nil?)
+        puts "\n\033[1mRemoving unused dependencies:\033[0m"
+        first_remove_dep = true
+      end
+
+      print "  #{package_name}"
 
       # print spaces between name and version of the package
-      (largest_name - package_name.strip.length).times do
+      (largest_name - package_name.strip.length + $spaces_between_columns).times do
         print ' '
       end
-      
-      puts " #{$color_remove}#{package_version}#{COLOR_END}"
+
+      print "#{$color_remove}#{package_version}#{COLOR_END}"
+
+      if $display_packages_size
+        # print spaces between version and size
+        (largest_version - package_version.length + $spaces_between_columns).times do
+          print ' '
+        end
+
+        print "#{$color_description}#{package_size}#{COLOR_END}"
+      end
+
+      print "\n"
 
     end
   end
@@ -489,21 +579,22 @@ end
 def write_config config_dir
   require "fileutils"
 
-  config = "#!/usr/bin/env ruby\n\n" +
-      "# color\n" +
-      "COLOR_INSTALL      = \"\\e[1;32m\" # green\n" +
-      "COLOR_REMOVE       = \"\\e[1;31m\" # red\n" +
-      "COLOR_DESCRIPTION  = \"\\e[1;30m\" # gray\n\n" +
-      "# config\n" +
-      "SPACES_SEARCH      = 40    # spaces with \"search\" between package name and his description\n" +
-      "NO_CONFIRM         = false # if true, don't ask for confirmation\n"
+  config = "# colors\n" +
+    "color_install      : \"\\e[1;32m\" # green\n" +
+    "color_remove       : \"\\e[1;31m\" # red\n" +
+    "color_description  : \"\\e[1;30m\" # gray\n\n" +
+    "# config\n" +
+    "display_packages_size  : true   # display or not the size of packages (only for install and remove)\n" +
+    "spaces_between_columns : 2      # minimum 1\n" +
+    "spaces_search          : 40     # spaces with \"search\" between package name and his description\n" +
+    "no_confirm             : false  # if true, don't ask for confirmation\n"
 
 
   if not File.directory? "#{config_dir}/apti"
     FileUtils.mkdir_p "#{config_dir}/apti"
   end
 
-  File.open("#{config_dir}/apti/aptirc.rb", "w") do |f|
+  File.open("#{config_dir}/apti/aptirc.yml", "w") do |f|
     f.write(config)
   end
 end
@@ -513,13 +604,17 @@ end
 # Read configuration file.
 #
 def read_config config_dir
-  require "#{config_dir}/apti/aptirc.rb"
+  require "yaml"
 
-  $color_install     = COLOR_INSTALL
-  $color_remove      = COLOR_REMOVE
-  $color_description = COLOR_DESCRIPTION
-  $spaces_search     = SPACES_SEARCH
-  $no_confirm        = NO_CONFIRM
+  app_config = YAML::load_file "#{config_dir}/apti/aptirc.yml"
+
+  $color_install          = app_config["color_install"]
+  $color_remove           = app_config["color_remove"]
+  $color_description      = app_config["color_description"]
+  $display_packages_size  = app_config["display_packages_size"]
+  $spaces_between_columns = app_config["spaces_between_columns"]
+  $spaces_search          = app_config["spaces_search"]
+  $no_confirm             = app_config["no_confirm"]
 end
 
 
@@ -542,7 +637,7 @@ end
 
 config_dir = get_config_dir
 
-if not File.exist?("#{config_dir}/apti/aptirc.rb")
+if not File.exist?("#{config_dir}/apti/aptirc.yml")
   write_config config_dir
 end
 
@@ -561,54 +656,52 @@ end
 
 case ARGV[0]
 
-  when "safe-upgrade"
-    upgrade packages
+when "safe-upgrade"
+  upgrade packages
 
-  when "upgrade"
-    puts "Warning: upgrade is deprecated, use safe-upgrade."
-    upgrade packages
+when "upgrade"
+  puts "Warning: upgrade is deprecated, use safe-upgrade."
+  upgrade packages
 
-  when "full-upgrade"
-    upgrade(packages, true)
+when "full-upgrade"
+  upgrade(packages, true)
 
-  when "search"
-    search packages
+when "search"
+  search packages
 
-  when "update"
-    execute_command "aptitude update"
+when "update"
+  execute_command "aptitude update"
 
-  when "remove"
-    remove packages
+when "remove"
+  remove packages
 
-  when "purge"
-    remove(packages, true)
+when "purge"
+  remove(packages, true)
 
-  when "install"
-    install packages
+when "install"
+  install packages
 
-  when "--stats"
-    stats
+when "--stats"
+  stats
 
-  when "--help"
-    help
-  when "-h"
-    help
+when "--help"
+  help
+when "-h"
+  help
 
-  when "--version"
-    version
-  when "-v"
-    version
+when "--version"
+  version
 
-  # other aptitude command
-  else
-    if not ARGV[0].eql? nil
-      arg = ""
-      ARGV.each do |ele|
-        arg.concat "#{ele} "
-      end
-      execute_command "aptitude #{arg}"
-    else
-      help
+# other aptitude command
+else
+  if not ARGV[0].eql? nil
+    arg = ""
+    ARGV.each do |ele|
+      arg.concat "#{ele} "
     end
+    execute_command "aptitude #{arg}"
+  else
+    help
+  end
 
 end
