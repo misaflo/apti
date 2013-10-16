@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-13)"
+APTI_VERSION      = "0.3-dev (2013-10-16)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -40,7 +40,9 @@ NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep",
 #-----------------------------#
 
 #
-# help
+# Display help.
+#
+# @return [void]
 #
 def help
   puts "usage: #{File.basename $0} commande"
@@ -56,7 +58,9 @@ end
 
 
 #
-# version
+# Display version.
+#
+# @return [void]
 #
 def version
   puts "apti #{APTI_VERSION}"
@@ -64,15 +68,17 @@ end
 
 
 #
-# Return an hash with largest size of package name (max["name"]),
-# and largest size of package version (max["version"]).
+# Get the largest size of package name and package version.
+#
+# @param packages [Array<String>] list of packages
+# @return [Hash{String => Fixnum}] largest size of package name ("name"), and largest size of package version ("version")
 #
 def get_max_package packages 
   max_name_size     = 0
   max_version_size  = 0
 
   packages.each do |ele|
-    if ele =~ /(([[:alnum:]]|-|\+|\.|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)/
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)/
 
       package_name    = $1
       package_version = $3
@@ -97,7 +103,12 @@ end
 
 
 #
-# print header for install, remove and upgrade
+# Print header for install, remove and upgrade.
+#
+# @param largest_name [Fixnum]
+# @param largest_version [Fixnum]
+# @param display_version [Boolean]
+# @return [void]
 #
 def print_header(largest_name, largest_version, display_version = true)
   terminal_width  = `tput cols`.to_i
@@ -139,6 +150,10 @@ end
 #
 # Execute the command with superuser rights if needed.
 #
+# @param command [String]
+# @param no_confirm [Boolean]
+# @return [void]
+#
 def execute_command(command, no_confirm = false)
 
   if not NEED_SUPERUSER_RIGHTS.include? command.split[1]
@@ -163,6 +178,10 @@ end
 
 #
 # upgrade
+#
+# @param packages [String]
+# @param full_upgrade [Boolean]
+# @return [void]
 #
 def upgrade(packages, full_upgrade = false)
   if full_upgrade
@@ -296,6 +315,9 @@ end
 #
 # search
 #
+# @param package [String]
+# @return [void]
+#
 def search package
   aptitude_string = `aptitude search --disable-columns #{package}`
   terminal_width  = `tput cols`.to_i
@@ -362,6 +384,9 @@ end
 
 #
 # install
+#
+# @param package [String]
+# @return [void]
 #
 def install package
   aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
@@ -458,8 +483,13 @@ def install package
   end
 end
 
+
 #
 # remove
+#
+# @param package [String]
+# @param purge [Boolean]
+# @return [void]
 #
 def remove(package, purge = false)
   if purge
@@ -560,6 +590,8 @@ end
 #
 # Print stats about packages.
 #
+# @return [void]
+#
 def stats
   packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
   packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
@@ -575,6 +607,9 @@ end
 
 #
 # Write configuration file.
+#
+# @param config_dir [String]
+# @return [void]
 #
 def write_config config_dir
   require "fileutils"
@@ -603,6 +638,9 @@ end
 #
 # Read configuration file.
 #
+# @param config_dir [String]
+# @return [void]
+#
 def read_config config_dir
   require "yaml"
 
@@ -620,6 +658,8 @@ end
 
 #
 # Return the config directory.
+#
+# @return [String]
 #
 def get_config_dir
   if ENV["XDG_CONFIG_HOME"].nil?
