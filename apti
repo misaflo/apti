@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-16)"
+APTI_VERSION      = "0.3-dev (2013-10-17)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -520,6 +520,16 @@ def remove(package, purge = false)
   # split packages
   packages = aptitude_string.split '>'
 
+  if purge
+    packages_removed_explicitly = packages.reject { |pack| not pack =~ /\{p\}/ }
+  else
+    packages_removed_explicitly = packages.reject { |pack| pack =~ /\{u\}/ }
+  end
+
+  packages_removed_as_dep = packages - packages_removed_explicitly
+
+  packages = packages_removed_explicitly + packages_removed_as_dep
+
   max             = get_max_package packages
   largest_name    = max["name"]
   largest_version = max["version"]
@@ -530,14 +540,18 @@ def remove(package, purge = false)
 
     # if we have a package to remove
     # ex: freepats{u} [20060219-1] <-1 113 kB> or freepats [20060219-1] <-1 113 kB>
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})? \[(.*)\] <(.*)/
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})?(\{p\})? \[(.*)\] <(.*)/
       package_name        = $1
       package_remove_dep  = $3
-      package_version     = $4
-      package_size        = $5
+      package_version     = $5
+      package_size        = $6
 
       if not first_remove_explicitly
-        puts "\033[1mRemoving:\033[0m"
+        if purge
+          puts "\033[1mPurging:\033[0m"
+        else
+          puts "\033[1mRemoving:\033[0m"
+        end
         first_remove_explicitly = true
       end
 
