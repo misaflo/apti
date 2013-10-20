@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-17)"
+APTI_VERSION      = "0.3-dev (2013-10-20)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -71,17 +71,21 @@ end
 # Get the largest size of package name and package version.
 #
 # @param packages [Array<String>] list of packages
-# @return [Hash{String => Fixnum}] largest size of package name ("name"), and largest size of package version ("version")
+# @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
 #
 def get_max_package packages 
   max_name_size     = 0
   max_version_size  = 0
+  max_size_size     = 0
 
   packages.each do |ele|
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)/
+    # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
+    #          package_name                       version                       -> version                               size
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])? (<(.*))?/
 
       package_name    = $1
       package_version = $3
+      package_size    = $10
 
       if package_name.length > max_name_size
         max_name_size = package_name.length
@@ -91,12 +95,17 @@ def get_max_package packages
         max_version_size = package_version.length
       end
 
+      if (not package_size.nil?) and (package_size.length > max_size_size)
+        max_size_size = package_size.length
+      end
+
     end
   end
 
   max             = Hash.new
   max["name"]     = max_name_size
   max["version"]  = max_version_size
+  max["size"]     = max_size_size
 
   return max
 end
@@ -420,6 +429,7 @@ def install package
   max             = get_max_package packages
   largest_name    = max["name"]
   largest_version = max["version"]
+  largest_size    = max["size"]
 
   print_header(largest_name, largest_version)
 
@@ -458,7 +468,7 @@ def install package
           print ' '
         end
 
-        print "#{$color_description}#{package_size}#{COLOR_END}"
+        print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
       end
 
       print "\n"
@@ -533,6 +543,7 @@ def remove(package, purge = false)
   max             = get_max_package packages
   largest_name    = max["name"]
   largest_version = max["version"]
+  largest_size    = max["size"]
 
   print_header(largest_name, largest_version)
 
@@ -575,7 +586,7 @@ def remove(package, purge = false)
           print ' '
         end
 
-        print "#{$color_description}#{package_size}#{COLOR_END}"
+        print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
       end
 
       print "\n"
