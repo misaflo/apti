@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-20)"
+APTI_VERSION      = "0.3-dev (2013-10-21)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -260,7 +260,7 @@ def upgrade(packages, full_upgrade = false)
         first_remove = true
       end
 
-      print "  #{package_name} "
+      print "  #{package_name}"
 
       # print spaces between name and version of the package
       (largest_name - package_name.length + $spaces_between_columns).times do
@@ -283,7 +283,7 @@ def upgrade(packages, full_upgrade = false)
       end
 
       # package name
-      print "  #{package_name} "
+      print "  #{package_name}"
 
       # print spaces between name and version of the package
       (largest_name - package_name.length + $spaces_between_columns).times do
