@@ -74,9 +74,11 @@ end
 # @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
 #
 def get_max_package packages 
-  max_name_size     = 0
-  max_version_size  = 0
-  max_size_size     = 0
+  max_name_size        = 0
+  max_version_size     = 0
+  max_size_before_size = 0
+  max_size_after_size  = 0
+  max_size_unit_size   = 0
 
   packages.each do |ele|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
@@ -95,18 +97,35 @@ def get_max_package packages
         max_version_size = package_version.length
       end
 
-      if (not package_size.nil?) and (package_size.length > max_size_size)
-        max_size_size = package_size.length
+      if not package_size.nil?
+        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
+          size_before = $1
+          size_after  = $2
+          size_unit   = $3
+        end
+	
+        if (not size_before.nil?) and (size_before.length > max_size_before_size)
+          max_size_before_size = size_before.length
+	end
+        if (not size_after.nil?) and (size_after.length > max_size_after_size)
+          max_size_after_size = size_after.length
+	end
+        if (not size_unit.nil?) and (size_unit.length > max_size_unit_size)
+          max_size_unit_size = size_unit.length
+	end
       end
 
     end
   end
 
-  max             = Hash.new
-  max["name"]     = max_name_size
-  max["version"]  = max_version_size
-  max["size"]     = max_size_size
-
+  max                   = Hash.new
+  max["name"]           = max_name_size
+  max["version"]        = max_version_size
+  max["size"]           = Hash.new
+  max["size"]["before"] = max_size_before_size
+  max["size"]["after"]  = max_size_after_size
+  max["size"]["unit"]   = max_size_unit_size
+  
   return max
 end
 
@@ -426,10 +445,12 @@ def install package
 
   packages = packages_installed_explicitly + packages_installed_as_dep
 
-  max             = get_max_package packages
-  largest_name    = max["name"]
-  largest_version = max["version"]
-  largest_size    = max["size"]
+  max                 = get_max_package packages
+  largest_name        = max["name"]
+  largest_version     = max["version"]
+  largest_size_before = max["size"]["before"]
+  largest_size_after  = max["size"]["after"]
+  largest_size_unit   = max["size"]["unit"]
 
   print_header(largest_name, largest_version)
 
@@ -467,8 +488,20 @@ def install package
         (largest_version - package_version.length + $spaces_between_columns).times do
           print ' '
         end
+        
+        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
+          size_before = $1
+          size_after  = $2
+          size_unit   = $3
+        end
 
-        print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
+	if size_after.nil?
+          size_after_length = 0
+	else
+          size_after_length = size_after.length
+	end
+
+        print "#{$color_description}#{size_before.rjust largest_size_before}#{size_after}#{size_unit.rjust(largest_size_unit + largest_size_after - size_after_length + $spaces_between_unit)}#{COLOR_END}"
       end
 
       print "\n"
@@ -646,6 +679,7 @@ def write_config config_dir
     "# config\n" +
     "display_packages_size  : true   # display or not the size of packages (only for install and remove)\n" +
     "spaces_between_columns : 2      # minimum 1\n" +
+    "spaces_between_unit    : 2      # spaces between size and unit\n" +
     "spaces_search          : 40     # spaces with \"search\" between package name and his description\n" +
     "no_confirm             : false  # if true, don't ask for confirmation\n"
 
@@ -676,6 +710,7 @@ def read_config config_dir
   $color_description      = app_config["color_description"]
   $display_packages_size  = app_config["display_packages_size"]
   $spaces_between_columns = app_config["spaces_between_columns"]
+  $spaces_between_unit    = app_config["spaces_between_unit"]
   $spaces_search          = app_config["spaces_search"]
   $no_confirm             = app_config["no_confirm"]
 end
