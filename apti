@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-21)"
+APTI_VERSION      = "0.3-dev (2013-10-22)"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -81,7 +81,7 @@ def get_max_package packages
   packages.each do |ele|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
     #          package_name                       version                       -> version                               size
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])? (<(.*))?/
+    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])?[[:space:]]?(<(.*))?/
 
       package_name    = $1
       package_version = $3
