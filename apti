@@ -98,12 +98,18 @@ def get_max_package packages
       end
 
       if not package_size.nil?
+	# Sépare les éléments essentiels de la taille (si présente) :
+	#  - signe & partie entière de la taille
+	#  - séparateur & partie décimal de la taille
+	#  - unité (sans l'espace) de la taille
+	# ex: +546,7 ko	=>	  +546	            ,7	           Ko
         if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
           size_before = $1
           size_after  = $2
           size_unit   = $3
         end
-	
+
+	# Idem version et nom : mémorise l'élément le plus long
         if (not size_before.nil?) and (size_before.length > max_size_before_size)
           max_size_before_size = size_before.length
 	end
@@ -127,6 +133,76 @@ def get_max_package packages
   max["size"]["unit"]   = max_size_unit_size
   
   return max
+end
+
+#
+# Separate packages in analysis parts
+#
+# @param packages [Array<String>] list of packages
+# @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
+#
+def analysis_packages packages
+  max            = Hash.new;
+  max['name']    = 0
+  max['version'] = 0
+  max['size']    = 0
+
+  packages.each do |package|
+    # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
+    #          package_name                       version                       -> version                               size
+    #if package =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])? (<(.*))?/
+    if package =~ /([[:alnum:]-+.:{}]*)[:space:]+\[([[:alnum:]-+.:~]*)([:space:]+->[:space:]+([[:alnum:]-+.:~]*)?\]?[:space:]+(?:<(.*))?/
+      # TODO a confirmer le [[:XXX:] YYY]
+      # TODO pk le ] est conditionnel ?
+      package         = Hash.new		# TODO Possible ?
+
+      package['name'] = $1
+      if $1.length > max['name']
+        max['name'] = $1.length;
+      end
+
+    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\}) \[(.*)/
+    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\})? \[(.*)\] <(.*)/
+    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})?(\{p\})? \[(.*)\] <(.*)/
+
+      package_name    = $1
+      package_version = $3
+      package_size    = $10
+
+      if package_name.length > max_name_size
+        max_name_size = package_name.length
+      end
+
+      if package_version.length > max_version_size
+        max_version_size = package_version.length
+      end
+
+      if not package_size.nil?
+	# Sépare les éléments essentiels de la taille (si présente) :
+	#  - signe & partie entière de la taille
+	#  - séparateur & partie décimal de la taille
+	#  - unité (sans l'espace) de la taille
+	# ex: +546,7 ko	=>	  +546	            ,7	           Ko
+        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
+          size_before = $1
+          size_after  = $2
+          size_unit   = $3
+        end
+
+	# Idem version et nom : mémorise l'élément le plus long
+        if (not size_before.nil?) and (size_before.length > max_size_before_size)
+          max_size_before_size = size_before.length
+	end
+        if (not size_after.nil?) and (size_after.length > max_size_after_size)
+          max_size_after_size = size_after.length
+	end
+        if (not size_unit.nil?) and (size_unit.length > max_size_unit_size)
+          max_size_unit_size = size_unit.length
+	end
+      end
+
+    end
+  end
 end
 
 
@@ -710,7 +786,7 @@ def read_config config_dir
   $color_description      = app_config["color_description"]
   $display_packages_size  = app_config["display_packages_size"]
   $spaces_between_columns = app_config["spaces_between_columns"]
-  $spaces_between_unit    = app_config["spaces_between_unit"]
+  $spaces_between_unit    = app_config["spaces_between_unit"]			# Espace entre la taille du paquet et son unité 
   $spaces_search          = app_config["spaces_search"]
   $no_confirm             = app_config["no_confirm"]
 end
