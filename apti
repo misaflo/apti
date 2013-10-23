@@ -68,141 +68,69 @@ end
 
 
 #
-# Get the largest size of package name and package version.
-#
-# @param packages [Array<String>] list of packages
-# @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
-#
-def get_max_package packages 
-  max_name_size        = 0
-  max_version_size     = 0
-  max_size_before_size = 0
-  max_size_after_size  = 0
-  max_size_unit_size   = 0
-
-  packages.each do |ele|
-    # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
-    #          package_name                       version                       -> version                               size
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])? (<(.*))?/
-
-      package_name    = $1
-      package_version = $3
-      package_size    = $10
-
-      if package_name.length > max_name_size
-        max_name_size = package_name.length
-      end
-
-      if package_version.length > max_version_size
-        max_version_size = package_version.length
-      end
-
-      if not package_size.nil?
-	# Sépare les éléments essentiels de la taille (si présente) :
-	#  - signe & partie entière de la taille
-	#  - séparateur & partie décimal de la taille
-	#  - unité (sans l'espace) de la taille
-	# ex: +546,7 ko	=>	  +546	            ,7	           Ko
-        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
-          size_before = $1
-          size_after  = $2
-          size_unit   = $3
-        end
-
-	# Idem version et nom : mémorise l'élément le plus long
-        if (not size_before.nil?) and (size_before.length > max_size_before_size)
-          max_size_before_size = size_before.length
-	end
-        if (not size_after.nil?) and (size_after.length > max_size_after_size)
-          max_size_after_size = size_after.length
-	end
-        if (not size_unit.nil?) and (size_unit.length > max_size_unit_size)
-          max_size_unit_size = size_unit.length
-	end
-      end
-
-    end
-  end
-
-  max                   = Hash.new
-  max["name"]           = max_name_size
-  max["version"]        = max_version_size
-  max["size"]           = Hash.new
-  max["size"]["before"] = max_size_before_size
-  max["size"]["after"]  = max_size_after_size
-  max["size"]["unit"]   = max_size_unit_size
-  
-  return max
-end
-
-#
 # Separate packages in analysis parts
 #
 # @param packages [Array<String>] list of packages
 # @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
 #
 def analysis_packages packages
-  max            = Hash.new;
-  max['name']    = 0
-  max['version'] = 0
-  max['size']    = 0
+  max                   = Hash.new
+  max['name']           = 0
+  max['version']        = Hash.new
+  max['version']['old'] = 0
+  max['version']['new'] = 0
+  max['size']           = Hash.new
+  max['size']['before'] = 0
+  max['size']['after']  = 0
+  max['size']['unit']   = 0
+
+  details = Array.new
 
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
-    #          package_name                       version                       -> version                               size
-    #if package =~ /(([[:alnum:]]|-|\+|\.|:|\{|\})*) \[(([[:alnum:]]|-|\+|\.|:|~)*)( -> (([[:alnum:]]|-|\+|\.|:|~)*))?(\])? (<(.*))?/
-    if package =~ /([[:alnum:]-+.:{}]*)[:space:]+\[([[:alnum:]-+.:~]*)([:space:]+->[:space:]+([[:alnum:]-+.:~]*)?\]?[:space:]+(?:<(.*))?/
-      # TODO a confirmer le [[:XXX:] YYY]
-      # TODO pk le ] est conditionnel ?
-      package         = Hash.new		# TODO Possible ?
+    #                     name          parameter           version_old        ->     version_new                size_before         size_after      size_unit
+    if package =~ /^([[:alnum:]+.:]*)(\{[:alpha:]\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ]+)([.,][:digit:]+)? ([:alpha:]+)>)?$/
+      detail                   = Hash.new
+      detail['name']           = $1
+      detail['parameter']      = $2
+      detail['version']        = Hash.new
+      detail['version']['old'] = $3
+      detail['version']['new'] = $4
+      detail['size']           = Hash.new
+      detail['size']['before'] = $5
+      detail['size']['after']  = $6
+      detail['size']['unit']   = $7
 
-      package['name'] = $1
-      if $1.length > max['name']
-        max['name'] = $1.length;
+      if detail['name'].length > max['name']
+        max['name'] = detail['name'].length;
       end
 
-    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\}) \[(.*)/
-    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\})? \[(.*)\] <(.*)/
-    #if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})?(\{p\})? \[(.*)\] <(.*)/
-
-      package_name    = $1
-      package_version = $3
-      package_size    = $10
-
-      if package_name.length > max_name_size
-        max_name_size = package_name.length
+      if detail['version']['old'].length > max['version']['old']
+        max['version']['old'] = detail['version']['old'].length;
+      end
+      if not detail['version']['new'].nil? and detail['version']['new'] > max['version']['new']
+        max['version']['new'] = detail['version']['new'].length
       end
 
-      if package_version.length > max_version_size
-        max_version_size = package_version.length
+      if not detail['size']['before'].nil? and detail['size']['before'].length > max['size']['before']
+        max['size']['before'] = detail['size']['before'].length
       end
-
-      if not package_size.nil?
-	# Sépare les éléments essentiels de la taille (si présente) :
-	#  - signe & partie entière de la taille
-	#  - séparateur & partie décimal de la taille
-	#  - unité (sans l'espace) de la taille
-	# ex: +546,7 ko	=>	  +546	            ,7	           Ko
-        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
-          size_before = $1
-          size_after  = $2
-          size_unit   = $3
-        end
-
-	# Idem version et nom : mémorise l'élément le plus long
-        if (not size_before.nil?) and (size_before.length > max_size_before_size)
-          max_size_before_size = size_before.length
-	end
-        if (not size_after.nil?) and (size_after.length > max_size_after_size)
-          max_size_after_size = size_after.length
-	end
-        if (not size_unit.nil?) and (size_unit.length > max_size_unit_size)
-          max_size_unit_size = size_unit.length
-	end
+      if not detail['size']['after'].nil? and detail['size']['after'].length > max['size']['after']
+        max['size']['after'] = detail['size']['after'].length
       end
-
+      if not detail['size']['unit'].nil? and detail['size']['unit'].length > max['size']['unit']
+        max['size']['unit'] = detail['size']['unit'].length
+      end
+    
+      details << detail
     end
   end
+
+  out            = Hash.new
+  out['max']     = max
+  out['details'] = details
+
+  return out
 end
 
 
@@ -514,7 +442,7 @@ def install package
   first_install_as_dep = false
 
   # split packages
-  packages = aptitude_string.split '>'
+  packages = aptitude_string.split(/ {2}/)
 
   packages_installed_explicitly = packages.reject { |pack| pack =~ /\{a\}/ }
   packages_installed_as_dep = packages - packages_installed_explicitly
@@ -571,11 +499,11 @@ def install package
           size_unit   = $3
         end
 
-	if size_after.nil?
+  if size_after.nil?
           size_after_length = 0
-	else
+  else
           size_after_length = size_after.length
-	end
+  end
 
         print "#{$color_description}#{size_before.rjust largest_size_before}#{size_after}#{size_unit.rjust(largest_size_unit + largest_size_after - size_after_length + $spaces_between_unit)}#{COLOR_END}"
       end
@@ -786,7 +714,7 @@ def read_config config_dir
   $color_description      = app_config["color_description"]
   $display_packages_size  = app_config["display_packages_size"]
   $spaces_between_columns = app_config["spaces_between_columns"]
-  $spaces_between_unit    = app_config["spaces_between_unit"]			# Espace entre la taille du paquet et son unité 
+  $spaces_between_unit    = app_config["spaces_between_unit"]     # Espace entre la taille du paquet et son unité 
   $spaces_search          = app_config["spaces_search"]
   $no_confirm             = app_config["no_confirm"]
 end
