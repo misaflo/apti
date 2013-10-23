@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-22)"
+APTI_VERSION      = "0.3-dev"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -133,19 +133,13 @@ def print_header(largest_name, largest_version, display_version = true)
 
   # Package
   print "  #{header_package}"
-  (largest_name - header_package.length + $spaces_between_columns).times do
-    print ' '
-  end
 
   # Version
-  print header_version
+  print header_version.rjust(largest_name - header_package.length + $spaces_between_columns + header_version.length)
 
   # Size
   if $display_packages_size and display_version
-    (largest_version - header_version.length + $spaces_between_columns).times do
-      print ' '
-  end
-    print header_size
+    print header_size.rjust(largest_version - header_version.length + $spaces_between_columns + header_size.length)
   end
   print "\n"
 
@@ -206,7 +200,7 @@ def upgrade(packages, full_upgrade = false)
     execute_command command
     exit 0
 
-  # if there is no package to upgrade
+    # if there is no package to upgrade
   elsif not aptitude_string.include? ':'
     puts "System is up to date."
     exit 0
@@ -249,8 +243,8 @@ def upgrade(packages, full_upgrade = false)
 
       puts "#{$color_install}#{package_version}#{COLOR_END}"
 
-    # if we have a package to remove
-    # ex: gcj-4.6-base{u} [4.6.3-1]
+      # if we have a package to remove
+      # ex: gcj-4.6-base{u} [4.6.3-1]
     elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\}) \[(.*)/
       package_name    = $1
       package_version = $4
@@ -269,8 +263,8 @@ def upgrade(packages, full_upgrade = false)
 
       puts "#{$color_remove}#{package_version}#{COLOR_END}"
 
-    # if we have a package to upgrade
-    # ex: php5 [5.3.10-2 -> 5.4.0-3
+      # if we have a package to upgrade
+      # ex: php5 [5.3.10-2 -> 5.4.0-3
     elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*) \[(.*) -> (.*)/
 
       package_name        = $1
@@ -402,14 +396,9 @@ def install package
   command = "aptitude install #{package}"
 
   # if problem with dependencies, wrong name given,
-  # or trying to install a virtual package : use aptitude
-  if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    execute_command command
-    exit 0
-
-  # if the package is already installed
-  elsif not aptitude_string.include? ':'
-    puts "Package(s) already installed."
+  # or package already installed : display aptitude's message
+  if (aptitude_string.include? "1)") or (not aptitude_string.include? ':')
+    puts aptitude_string
     exit 0
   end
 
@@ -511,9 +500,9 @@ def remove(package, purge = false)
   end
 
   # if problem with dependencies, wrong name given,
-  # or trying to remove a virtual package : use aptitude
-  if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    execute_command command
+  # or trying to remove a virtual package : display aptitude's message
+  if (aptitude_string.include? "1)") or (aptitude_string.include? '«')
+    puts aptitude_string
     exit 0
 
   # if the package is not installed
@@ -757,7 +746,7 @@ when "-h"
 when "--version"
   version
 
-# other aptitude command
+  # other aptitude command
 else
   if not ARGV[0].eql? nil
     arg = ""
