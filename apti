@@ -126,7 +126,9 @@ def analysis_packages packages
     end
   end
 
-  max['version']['all'] = max['version']['old'] + max['version']['new'] + " -> ".length
+  max['version']['all'] = max['version']['old'] + max['version']['new']
+  if max['version']['new'] > 0
+    max['version']['all'] += " -> ".length
 
   out            = Hash.new
   out['max']     = max
@@ -158,9 +160,10 @@ def print_header(largest_name, largest_version, display_version = true)
   header_version = "Version"
   header_size    = "Size"
 
-  print "  #{header_package}#{header_version.rjust((largest_name + header_package.length) + $space_between_columns)}"
+  print "  #{header_package}"
+  print "#{header_version.rjust((largest_name + header_package.length) + $spaces_between_columns)}"
   if $display_packages_size and display_version
-    print "#{header_size.rjust((largest_version['all'] - header_version.length) + $space_between_columns)}"
+    print "#{header_size.rjust((largest_version['all'] - header_version.length) + $spaces_between_columns)}"
   end
   print "\n"
 
@@ -448,59 +451,31 @@ def install package
   
   print_header(max['name'], max['version'])
 
-  packages.each do |ele|
-
-    # if we have a package to install
-    # ex: brasero [3.8.0-2] <+1 113 kB> or  brasero{a} [3.8.0-2] <+1 113 kB>
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\})? \[(.*)\] <(.*)/
-      package_name          = $1
-      package_install_auto  = $3
-      package_version       = $4
-      package_size          = $5
-
-      if not first_install_explicitly
-        puts "\033[1mInstalling:\033[0m"
-        first_install_explicitly = true
-      end
-
-      if (not first_install_as_dep) and (not package_install_auto.nil?)
-        puts "\n\033[1mInstalling for dependencies:\033[0m"
-        first_install_as_dep = true
-      end
-
-      print "  #{package_name}"
-
-      # print spaces between name and version of the package
-      (largest_name - package_name.length + $spaces_between_columns).times do
-        print ' '
-      end
-
-      print "#{$color_install}#{package_version}#{COLOR_END}"
-
-      if $display_packages_size
-        # print spaces between version and size
-        (largest_version - package_version.length + $spaces_between_columns).times do
-          print ' '
-        end
-        
-        if package_size =~ /^([+-]?[0-9\s]+)((?:\.|,)[0-9]+)?\s+([a-z]+)$/i
-          size_before = $1
-          size_after  = $2
-          size_unit   = $3
-        end
-
-  if size_after.nil?
-          size_after_length = 0
-  else
-          size_after_length = size_after.length
-  end
-
-        print "#{$color_description}#{size_before.rjust largest_size_before}#{size_after}#{size_unit.rjust(largest_size_unit + largest_size_after - size_after_length + $spaces_between_unit)}#{COLOR_END}"
-      end
-
-      print "\n"
-
+  details.each do |detail|
+    if not first_install_explicitly
+      puts "\033[1mInstalling:\033[0m"
+      first_install_explicitly = true
     end
+
+    if (not first_install_as_dep) and (not package_install_auto.nil?)
+      puts "\n\033[1mInstalling for dependencies:\033[0m"
+      first_install_as_dep = true
+    end
+
+    print "  #{detail['name']}"
+    print "#{$color_install}#{detail['version']['old'].rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{COLOR_END}"
+
+    if $display_packages_size
+      detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+
+      print "#{$color_description}"
+      print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+      print "#{detail['size']['after']}"
+      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
+      print "#{COLOR_END}"
+    end
+    
+    print "\n"
   end
 
   # size to download and install
