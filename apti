@@ -88,8 +88,8 @@ def analysis_packages packages
 
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
-    #                     name          parameter           version_old        ->     version_new                size_before         size_after      size_unit
-    if package =~ /^([[:alnum:]+.:]*)(\{[:alpha:]\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ]+)([.,][:digit:]+)? ([:alpha:]+)>)?$/
+    #                     name           parameter           version_old         ->     version_new                size_before         size_after         size_unit
+    if package =~ /^([[:alnum:]+.:]*)(\{[[:alpha:]]\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ]+)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
       detail['name']           = $1
       detail['parameter']      = $2
@@ -129,6 +129,7 @@ def analysis_packages packages
   max['version']['all'] = max['version']['old'] + max['version']['new']
   if max['version']['new'] > 0
     max['version']['all'] += " -> ".length
+  end
 
   out            = Hash.new
   out['max']     = max
@@ -161,9 +162,11 @@ def print_header(largest_name, largest_version, display_version = true)
   header_size    = "Size"
 
   print "  #{header_package}"
-  print "#{header_version.rjust((largest_name + header_package.length) + $spaces_between_columns)}"
+  print "#{''.rjust(largest_name - header_package.length + $spaces_between_columns)}"
+  print "#{header_version}"
   if $display_packages_size and display_version
-    print "#{header_size.rjust((largest_version['all'] - header_version.length) + $spaces_between_columns)}"
+    print "#{''.rjust(largest_version['all'] - header_version.length + $spaces_between_columns + 1)}"
+    print "#{header_size}"
   end
   print "\n"
 
@@ -457,13 +460,13 @@ def install package
       first_install_explicitly = true
     end
 
-    if (not first_install_as_dep) and (not package_install_auto.nil?)
+    if (not first_install_as_dep) and (detail['parameter'] == 'a')
       puts "\n\033[1mInstalling for dependencies:\033[0m"
       first_install_as_dep = true
     end
 
     print "  #{detail['name']}"
-    print "#{$color_install}#{detail['version']['old'].rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{COLOR_END}"
+    print "#{$color_install}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
 
     if $display_packages_size
       detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
