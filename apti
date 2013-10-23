@@ -126,6 +126,8 @@ def analysis_packages packages
     end
   end
 
+  max['version']['all'] = max['version']['old'] + max['version']['new'] + " -> ".length
+
   out            = Hash.new
   out['max']     = max
   out['details'] = details
@@ -145,33 +147,24 @@ end
 def print_header(largest_name, largest_version, display_version = true)
   terminal_width  = `tput cols`.to_i
 
+  # Ligne du haut
   terminal_width.times do
     print '='
   end
   print "\n"
 
+  # Nom des colonnes
   header_package = "Package"
   header_version = "Version"
   header_size    = "Size"
 
-  # Package
-  print "  #{header_package}"
-  (largest_name - header_package.length + $spaces_between_columns).times do
-    print ' '
-  end
-
-  # Version
-  print header_version
-
-  # Size
+  print "  #{header_package}#{header_version.rjust((largest_name + header_package.length) + $space_between_columns)}"
   if $display_packages_size and display_version
-    (largest_version - header_version.length + $spaces_between_columns).times do
-      print ' '
-  end
-    print header_size
+    print "#{header_size.rjust((largest_version['all'] - header_version.length) + $space_between_columns)}"
   end
   print "\n"
 
+  # Ligne du bas
   terminal_width.times do
     print '='
   end
@@ -444,19 +437,16 @@ def install package
   # split packages
   packages = aptitude_string.split(/ {2}/)
 
-  packages_installed_explicitly = packages.reject { |pack| pack =~ /\{a\}/ }
+  packages_installed_explicitly = packages.reject { |package| package =~ /\{a\}/ }
   packages_installed_as_dep = packages - packages_installed_explicitly
 
   packages = packages_installed_explicitly + packages_installed_as_dep
 
-  max                 = get_max_package packages
-  largest_name        = max["name"]
-  largest_version     = max["version"]
-  largest_size_before = max["size"]["before"]
-  largest_size_after  = max["size"]["after"]
-  largest_size_unit   = max["size"]["unit"]
-
-  print_header(largest_name, largest_version)
+  analysis = analysis_packages packages
+  max      = analysis['max']
+  details  = analysis['details']
+  
+  print_header(max['name'], max['version'])
 
   packages.each do |ele|
 
