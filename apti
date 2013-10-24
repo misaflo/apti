@@ -86,10 +86,12 @@ def analysis_packages packages
 
   details = Array.new
 
+  packages.delete_if { |package| package == '' || package == "\n" }
+
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
     #                     name           parameter           version_old         ->     version_new                size_before         size_after         size_unit
-    if package =~ /^([[:alnum:]+.:]*)(\{[[:alpha:]]\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ]+)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+    if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ]+)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
       detail['name']           = $1
       detail['parameter']      = $2
@@ -123,6 +125,8 @@ def analysis_packages packages
       end
     
       details << detail
+    #else
+      #print "Fail to analyse package : #{package}\n"
     end
   end
 
@@ -533,7 +537,7 @@ def remove(package, purge = false)
   first_remove_dep = false
 
   # split packages
-  packages = aptitude_string.split '>'
+  packages = aptitude_string.split(/ {2}/)
 
   if purge
     packages_removed_explicitly = packages.reject { |pack| not pack =~ /\{p\}/ }
@@ -545,58 +549,59 @@ def remove(package, purge = false)
 
   packages = packages_removed_explicitly + packages_removed_as_dep
 
-  max             = get_max_package packages
-  largest_name    = max["name"]
-  largest_version = max["version"]
-  largest_size    = max["size"]
+  analysis = analysis_packages packages
+  max      = analysis['max']
+  details  = analysis['details']
+  
+  print_header(max['name'], max['version'])
 
-  print_header(largest_name, largest_version)
-
-  packages.each do |ele|
-
-    # if we have a package to remove
-    # ex: freepats{u} [20060219-1] <-1 113 kB> or freepats [20060219-1] <-1 113 kB>
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\})?(\{p\})? \[(.*)\] <(.*)/
-      package_name        = $1
-      package_remove_dep  = $3
-      package_version     = $5
-      package_size        = $6
-
-      if not first_remove_explicitly
-        if purge
-          puts "\033[1mPurging:\033[0m"
-        else
-          puts "\033[1mRemoving:\033[0m"
-        end
-        first_remove_explicitly = true
+  details.each do |detail|
+    if not first_remove_explicitly
+      if purge
+        puts "\033[1mPurging:\033[0m"
+      else
+        puts "\033[1mRemoving:\033[0m"
       end
-
-      if (not first_remove_dep) and (not package_remove_dep.nil?)
-        puts "\n\033[1mRemoving unused dependencies:\033[0m"
-        first_remove_dep = true
-      end
-
-      print "  #{package_name}"
-
-      # print spaces between name and version of the package
-      (largest_name - package_name.strip.length + $spaces_between_columns).times do
-        print ' '
-      end
-
-      print "#{$color_remove}#{package_version}#{COLOR_END}"
-
-      if $display_packages_size
-        # print spaces between version and size
-        (largest_version - package_version.length + $spaces_between_columns).times do
-          print ' '
-        end
-
-        print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
-      end
-
-      print "\n"
-
+      first_remove_explicitly = true
     end
+
+    if (not first_remove_dep) and (detail['parameter'] == 'u' or detail['parameter'] == 'p')
+      puts "\n\033[1mRemoving unused dependencies:\033[0m"
+      first_remove_dep = true
+    end
+
+    print "  #{detail['name']}"
+    print "#{$color_remove}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
+
+    if $display_packages_size
+      detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+
+      print "#{$color_description}"
+      print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+      print "#{detail['size']['after']}"
+      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
+      print "#{COLOR_END}"
+    end
+
+    #print "  #{package_name}"
+
+    ## print spaces between name and version of the package
+    #(largest_name - package_name.strip.length + $spaces_between_columns).times do
+      #print ' '
+    #end
+
+    #print "#{$color_remove}#{package_version}#{COLOR_END}"
+
+    #if $display_packages_size
+      ## print spaces between version and size
+      #(largest_version - package_version.length + $spaces_between_columns).times do
+        #print ' '
+      #end
+
+      #print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
+    #end
+
+    print "\n"
   end
 
   # size free
