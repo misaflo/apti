@@ -443,6 +443,7 @@ def install package
     if $display_packages_size
       detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
       print "#{(max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + 1 + $spaces_between_unit}"
+      print " = (#{max['size']['after']} - #{detail_size_after_length}) + (#{max['size']['unit']} - #{detail['size']['unit'].length}) + 1 + #{$spaces_between_unit}"
 
       print "#{$color_description}"
       print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
