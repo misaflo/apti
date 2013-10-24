@@ -245,88 +245,56 @@ def upgrade(packages, full_upgrade = false)
   first_update  = false
 
   # split packages
-  packages = aptitude_string.split ']'
+  packages = aptitude_string.split(/ {2}/)
 
-  max             = get_max_package packages
-  largest_name    = max["name"]
-  largest_version = max["version"]
+  analysis = analysis_packages packages
+  max      = analysis['max']
+  details  = analysis['details']
+  
+  print_header(max['name'], max['version'], false)
+  #print_header(max['name'], max['version'])
 
-  print_header(largest_name, largest_version, false)
-
-  packages.each do |ele|
-
-    # if we have a package to install
-    # ex: freepats{a} [20060219-1
-    if ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{a\}) \[(.*)/
-      package_name    = $1
-      package_version = $4
-
+  details.each do |detail|
+    case detail['parameter']
+    when 'a'
+      color = $color_install
       if not first_install
         puts "\033[1mInstalling:\033[0m"
         first_install = true
       end
 
-      print "  #{package_name}"
-
-      # print spaces between name and version of the package
-      (largest_name - package_name.length + $spaces_between_columns).times do
-        print ' '
-      end
-
-      puts "#{$color_install}#{package_version}#{COLOR_END}"
-
-    # if we have a package to remove
-    # ex: gcj-4.6-base{u} [4.6.3-1]
-    elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*)(\{u\}) \[(.*)/
-      package_name    = $1
-      package_version = $4
-
+    when 'u'
+      color = $color_remove
       if not first_remove
-        puts "\n\033[1mRemoving:\033[0m"
+        puts "\033[1mRemoving:\033[0m"
         first_remove = true
       end
 
-      print "  #{package_name}"
-
-      # print spaces between name and version of the package
-      (largest_name - package_name.length + $spaces_between_columns).times do
-        print ' '
-      end
-
-      puts "#{$color_remove}#{package_version}#{COLOR_END}"
-
-    # if we have a package to upgrade
-    # ex: php5 [5.3.10-2 -> 5.4.0-3
-    elsif ele =~ /(([[:alnum:]]|-|\+|\.|:)*) \[(.*) -> (.*)/
-
-      package_name        = $1
-      version_installed   = $3
-      version_to_install  = $4
-
+    else
       if not first_update
-        puts "\n\033[1mUpdating:\033[0m"
+        puts "\033[1mUpdating:\033[0m"
         first_update = true
       end
-
-      # package name
-      print "  #{package_name}"
-
-      # print spaces between name and version of the package
-      (largest_name - package_name.length + $spaces_between_columns).times do
-        print ' '
-      end
-
-      # version installed
-      print "#{$color_remove}#{version_installed}#{COLOR_END} "
-
-      # print spaces between version installed and version to install
-      (largest_version - version_installed.length).times do
-        print ' '
-      end
-
-      # version to install
-      puts "-> #{$color_install}#{version_to_install}#{COLOR_END}"
     end
+
+    print "  #{detail['name']}"
+    print "#{color}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
+
+    if not detail['version']['new'].nil?
+      print "#{$color_install}#{' -> '.rjust((max['version']['old'] - detail['version']['old'].length) + ' -> '.length)}#{detail['version']['new']}#{COLOR_END}"
+    end
+
+    #if $display_packages_size
+      #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+
+      #print "#{$color_description}"
+      #print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+      #print "#{detail['size']['after']}"
+      #print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
+      #print "#{COLOR_END}"
+    #end
+    
+    print "\n"
   end
 
   # size to download and install
@@ -474,11 +442,12 @@ def install package
 
     if $display_packages_size
       detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+      print "#{(max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + 1 + $spaces_between_unit}"
 
       print "#{$color_description}"
       print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
       print "#{detail['size']['after']}"
-      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
+      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + 1 + $spaces_between_unit)}"
       print "#{COLOR_END}"
     end
     
@@ -582,24 +551,6 @@ def remove(package, purge = false)
       print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
       print "#{COLOR_END}"
     end
-
-    #print "  #{package_name}"
-
-    ## print spaces between name and version of the package
-    #(largest_name - package_name.strip.length + $spaces_between_columns).times do
-      #print ' '
-    #end
-
-    #print "#{$color_remove}#{package_version}#{COLOR_END}"
-
-    #if $display_packages_size
-      ## print spaces between version and size
-      #(largest_version - package_version.length + $spaces_between_columns).times do
-        #print ' '
-      #end
-
-      #print "#{$color_description}#{package_size.rjust largest_size}#{COLOR_END}"
-    #end
 
     print "\n"
   end
