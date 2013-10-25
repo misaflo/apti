@@ -26,7 +26,7 @@
 
 # Configuration in ~/.config/apti/aptirc.rb (by default)
 
-APTI_VERSION      = "0.3-dev (2013-10-21)"
+APTI_VERSION      = "0.3-dev"
 $VERBOSE          = true  # enable warnings
 COLOR_END         = "\e[0m"
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
@@ -89,7 +89,7 @@ def analysis_packages packages
   packages.delete_if { |package| package == '' || package == "\n" }
 
   packages.each do |package|
-    # ex: brasero-common{a} [3.8.0-2] <+11,2 MB
+    # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
     #                     name           parameter           version_old         ->     version_new                size_before         size_after         size_unit
     if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ,]+?)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
@@ -110,7 +110,7 @@ def analysis_packages packages
       if detail['version']['old'].length > max['version']['old']
         max['version']['old'] = detail['version']['old'].length;
       end
-      if not detail['version']['new'].nil? and detail['version']['new'] > max['version']['new']
+      if not detail['version']['new'].nil? and detail['version']['new'].length > max['version']['new']
         max['version']['new'] = detail['version']['new'].length
       end
 
@@ -232,7 +232,7 @@ def upgrade(packages, full_upgrade = false)
     execute_command command
     exit 0
 
-  # if there is no package to upgrade
+    # if there is no package to upgrade
   elsif not aptitude_string.include? ':'
     puts "System is up to date."
     exit 0
@@ -259,6 +259,9 @@ def upgrade(packages, full_upgrade = false)
     when 'a'
       color = $color_install
       if not first_install
+        if first_remove or first_update
+          puts "\n"
+        end
         puts "\033[1mInstalling:\033[0m"
         first_install = true
       end
@@ -266,12 +269,19 @@ def upgrade(packages, full_upgrade = false)
     when 'u'
       color = $color_remove
       if not first_remove
+        if first_install or first_update
+          puts "\n"
+        end
         puts "\033[1mRemoving:\033[0m"
         first_remove = true
       end
 
     else
+      color = $color_remove
       if not first_update
+        if first_install or first_remove
+          puts "\n"
+        end
         puts "\033[1mUpdating:\033[0m"
         first_update = true
       end
@@ -396,14 +406,9 @@ def install package
   command = "aptitude install #{package}"
 
   # if problem with dependencies, wrong name given,
-  # or trying to install a virtual package : use aptitude
-  if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    execute_command command
-    exit 0
-
-  # if the package is already installed
-  elsif not aptitude_string.include? ':'
-    puts "Package(s) already installed."
+  # or package already installed : display aptitude's message
+  if (aptitude_string.include? "1)") or (not aptitude_string.include? ':')
+    puts aptitude_string
     exit 0
   end
 
@@ -488,9 +493,9 @@ def remove(package, purge = false)
   end
 
   # if problem with dependencies, wrong name given,
-  # or trying to remove a virtual package : use aptitude
-  if aptitude_string.include? "1)" or aptitude_string.include? '«'
-    execute_command command
+  # or trying to remove a virtual package : display aptitude's message
+  if (aptitude_string.include? "1)") or (aptitude_string.include? '«')
+    puts aptitude_string
     exit 0
 
   # if the package is not installed
@@ -719,7 +724,7 @@ when "-h"
 when "--version"
   version
 
-# other aptitude command
+  # other aptitude command
 else
   if not ARGV[0].eql? nil
     arg = ""
