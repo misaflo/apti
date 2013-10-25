@@ -6,7 +6,8 @@
 
   Apti is a frontend for aptitude with improved presentation of packages.
 
-  Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+  Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>,
+    Julien Rosset <jul.rosset at gmail dot com>
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
