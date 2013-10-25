@@ -70,10 +70,12 @@ end
 
 
 #
-# Separate packages in analysis parts
+# Separate packages in analysis parts.
+#
+# TODO: comments of return
 #
 # @param packages [Array<String>] list of packages
-# @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
+# @return [Hash]
 #
 def analysis_packages packages
   max                   = Hash.new
@@ -92,7 +94,7 @@ def analysis_packages packages
 
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-    #                     name           parameter           version_old         ->     version_new                size_before         size_after         size_unit
+    #                 name                  parameter           version_old           ->  version_new                 size_before           size_after          size_unit
     if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ,]+?)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
       detail['name']           = $1
@@ -106,11 +108,11 @@ def analysis_packages packages
       detail['size']['unit']   = $7
 
       if detail['name'].length > max['name']
-        max['name'] = detail['name'].length;
+        max['name'] = detail['name'].length
       end
 
       if detail['version']['old'].length > max['version']['old']
-        max['version']['old'] = detail['version']['old'].length;
+        max['version']['old'] = detail['version']['old'].length
       end
       if not detail['version']['new'].nil? and detail['version']['new'].length > max['version']['new']
         max['version']['new'] = detail['version']['new'].length
@@ -127,8 +129,10 @@ def analysis_packages packages
       end
     
       details << detail
+
+    #NOTE: uncomment for debug
     #else
-      #print "Fail to analyse package : #{package}\n"
+    #  print "Fail to analyse package : #{package}\n"
     end
   end
 
@@ -156,13 +160,13 @@ end
 def print_header(largest_name, largest_version, display_version = true)
   terminal_width  = `tput cols`.to_i
 
-  # Ligne du haut
+  # top line
   terminal_width.times do
     print '='
   end
   print "\n"
 
-  # Nom des colonnes
+  # column's names
   header_package = "Package"
   header_version = "Version"
   header_size    = "Size"
@@ -176,7 +180,7 @@ def print_header(largest_name, largest_version, display_version = true)
   end
   print "\n"
 
-  # Ligne du bas
+  # bottom line
   terminal_width.times do
     print '='
   end
@@ -234,7 +238,7 @@ def upgrade(packages, full_upgrade = false)
     execute_command command
     exit 0
 
-    # if there is no package to upgrade
+  # if there is no package to upgrade
   elsif not aptitude_string.include? ':'
     puts "System is up to date."
     exit 0
@@ -254,7 +258,6 @@ def upgrade(packages, full_upgrade = false)
   details  = analysis['details']
   
   print_header(max['name'], max['version'], false)
-  #print_header(max['name'], max['version'])
 
   details.each do |detail|
     case detail['parameter']
@@ -293,9 +296,10 @@ def upgrade(packages, full_upgrade = false)
     print "#{color}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
 
     if not detail['version']['new'].nil?
-      print "#{$color_install}#{' -> '.rjust((max['version']['old'] - detail['version']['old'].length) + ' -> '.length)}#{detail['version']['new']}#{COLOR_END}"
+      print "#{' -> '.rjust((max['version']['old'] - detail['version']['old'].length) + ' -> '.length)}#{$color_install}#{detail['version']['new']}#{COLOR_END}"
     end
 
+    #NOTE: currently used
     #if $display_packages_size
       #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
 
@@ -422,7 +426,7 @@ def install package
   # split packages
   packages = aptitude_string.split(/ {2}/)
 
-  packages_installed_explicitly = packages.reject { |package| package =~ /\{a\}/ }
+  packages_installed_explicitly = packages.reject { |pack| pack =~ /\{a\}/ }
   packages_installed_as_dep = packages - packages_installed_explicitly
 
   packages = packages_installed_explicitly + packages_installed_as_dep
@@ -439,7 +443,7 @@ def install package
       first_install_explicitly = true
     end
 
-    if (not first_install_as_dep) and (detail['parameter'] == 'a')
+    if (not first_install_as_dep) and (detail['parameter'].eql? 'a')
       puts "\n\033[1mInstalling for dependencies:\033[0m"
       first_install_as_dep = true
     end
@@ -613,7 +617,7 @@ def write_config config_dir
     "# config\n" +
     "display_packages_size  : true   # display or not the size of packages (only for install and remove)\n" +
     "spaces_between_columns : 2      # minimum 1\n" +
-    "spaces_between_unit    : 2      # spaces between size and unit\n" +
+    "spaces_between_unit    : 1      # spaces between size and unit\n" +
     "spaces_search          : 40     # spaces with \"search\" between package name and his description\n" +
     "no_confirm             : false  # if true, don't ask for confirmation\n"
 
@@ -637,6 +641,7 @@ end
 def read_config config_dir
   require "yaml"
 
+  #TODO: use defaults values if wrong config file
   app_config = YAML::load_file "#{config_dir}/apti/aptirc.yml"
 
   $color_install          = app_config["color_install"]
@@ -644,7 +649,7 @@ def read_config config_dir
   $color_description      = app_config["color_description"]
   $display_packages_size  = app_config["display_packages_size"]
   $spaces_between_columns = app_config["spaces_between_columns"]
-  $spaces_between_unit    = app_config["spaces_between_unit"]     # Espace entre la taille du paquet et son unité 
+  $spaces_between_unit    = app_config["spaces_between_unit"]
   $spaces_search          = app_config["spaces_search"]
   $no_confirm             = app_config["no_confirm"]
 end
