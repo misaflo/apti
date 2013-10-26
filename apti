@@ -6,7 +6,7 @@
 
   Apti is a frontend for aptitude with improved presentation of packages.
 
-  Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com> and
+  Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>
   Copyright (C) 2013 by Julien Rosset <jul.rosset at gmail dot com>
 
 
@@ -130,7 +130,7 @@ def analysis_packages packages
     
       details << detail
 
-    #NOTE: uncomment for debug
+    # NOTE: uncomment for debug
     #else
     #  print "Fail to analyse package : #{package}\n"
     end
@@ -154,10 +154,11 @@ end
 #
 # @param largest_name [Fixnum]
 # @param largest_version [Fixnum]
-# @param display_version [Boolean]
+# @param display_size [Boolean]
 # @return [void]
 #
-def print_header(largest_name, largest_version, display_version = true)
+def print_header(largest_name, largest_version, display_size = true)
+  # NOTE: when upgrade display size, remove display_size's argument
   terminal_width  = `tput cols`.to_i
 
   # top line
@@ -174,8 +175,8 @@ def print_header(largest_name, largest_version, display_version = true)
   print "  #{header_package}"
   print "#{''.rjust(largest_name - header_package.length + $spaces_between_columns)}"
   print "#{header_version}"
-  if $display_packages_size and display_version
-    print "#{''.rjust(largest_version['all'] - header_version.length + $spaces_between_columns + 1)}"
+  if $display_packages_size and display_size
+    print "#{''.rjust(largest_version - header_version.length + $spaces_between_columns + 1)}"
     print "#{header_size}"
   end
   print "\n"
@@ -226,10 +227,10 @@ end
 #
 def upgrade(packages, full_upgrade = false)
   if full_upgrade
-    aptitude_string = `aptitude full-upgrade -Vs --allow-untrusted --assume-yes #{packages}`
+    aptitude_string = `aptitude full-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
     command = "aptitude full-upgrade #{packages}"
   else
-    aptitude_string = `aptitude safe-upgrade -Vs --allow-untrusted --assume-yes #{packages}`
+    aptitude_string = `aptitude safe-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
     command = "aptitude safe-upgrade #{packages}"
   end
 
@@ -257,7 +258,7 @@ def upgrade(packages, full_upgrade = false)
   max      = analysis['max']
   details  = analysis['details']
   
-  print_header(max['name'], max['version'], false)
+  print_header(max['name'], max['version']['all'], false)
 
   details.each do |detail|
     case detail['parameter']
@@ -299,16 +300,19 @@ def upgrade(packages, full_upgrade = false)
       print "#{' -> '.rjust((max['version']['old'] - detail['version']['old'].length) + ' -> '.length)}#{$color_install}#{detail['version']['new']}#{COLOR_END}"
     end
 
-    #NOTE: currently used
-    #if $display_packages_size
-      #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+    # TODO
+    if $display_packages_size
+      # HACK: moove this to analysis_packages ?
+      detail_size_before_length = (detail['size']['before'].nil? ? 0 : detail['size']['before'].length)
+      detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
 
-      #print "#{$color_description}"
-      #print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-      #print "#{detail['size']['after']}"
-      #print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
-      #print "#{COLOR_END}"
-    #end
+      detail_size_after = (detail['size']['after'].nil? ? '' : detail['size']['after'])
+      detail_size_before = (detail['size']['before'].nil? ? '' : detail['size']['before'])
+      detail_size_unit = (detail['size']['unit'].nil? ? '' : detail['size']['unit'])
+
+      print "#{$color_description}"
+      print "#{COLOR_END}"
+    end
     
     print "\n"
   end
@@ -435,7 +439,7 @@ def install package
   max      = analysis['max']
   details  = analysis['details']
   
-  print_header(max['name'], max['version'])
+  print_header(max['name'], max['version']['all'])
 
   details.each do |detail|
     if not first_install_explicitly
@@ -532,7 +536,7 @@ def remove(package, purge = false)
   max      = analysis['max']
   details  = analysis['details']
   
-  print_header(max['name'], max['version'])
+  print_header(max['name'], max['version']['all'])
 
   details.each do |detail|
     if not first_remove_explicitly
