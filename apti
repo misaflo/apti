@@ -94,8 +94,8 @@ def analysis_packages packages
 
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-    #                 name                  parameter           version_old           ->  version_new                 size_before           size_after          size_unit
-    if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:] ,]+?)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+    #                 name                  parameter           version_old           ->  version_new                                    size_before                  size_after          size_unit
+    if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,][[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
       detail['name']           = $1
       detail['parameter']      = $2
