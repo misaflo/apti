@@ -160,7 +160,7 @@ def display_packages(packages, operation, color, question, download_size)
     when 'a'
       dep_install << detail
 
-    when 'p', 'u'
+    when 'u'
       dep_remove  << detail
 
     #when ''
@@ -196,7 +196,7 @@ def display_packages(packages, operation, color, question, download_size)
 
   answer = ''
   while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
-    print "\n\033[1mContinue the #{question} ? (Y/n)\033[0m "
+    print "\n\033[1m#{question} ? (Y/n)\033[0m "
     answer = STDIN.gets.chomp
     if answer.empty?
       answer = 'y'
@@ -499,69 +499,12 @@ def install package
 
   packages = [[]]
 
-  #first_install_explicitly = false
-  #first_install_as_dep = false
-
   # split packages
   packages = aptitude_string.split(/ {2}/)
   
-  if display_packages(packages, 'Installing', $color_install, 'Installation', aptitude_string.split(/\n/)[-2])
+  if display_packages(packages, 'Installing', $color_install, 'Continue the installation', aptitude_string.split(/\n/)[-2])
     execute_command(command, true)
   end
-
-  #packages_installed_explicitly = packages.reject { |package| package =~ /\{a\}/ }
-  #packages_installed_as_dep = packages - packages_installed_explicitly
-
-  #packages = packages_installed_explicitly + packages_installed_as_dep
-
-  #analysis = analysis_packages packages
-  #max      = analysis['max']
-  #details  = analysis['details']
-  
-  #print_header(max['name'], max['version'])
-
-  #details.each do |detail|
-    #if not first_install_explicitly
-      #puts "\033[1mInstalling:\033[0m"
-      #first_install_explicitly = true
-    #end
-
-    #if (not first_install_as_dep) and (detail['parameter'] == 'a')
-      #puts "\n\033[1mInstalling for dependencies:\033[0m"
-      #first_install_as_dep = true
-    #end
-
-    #print "  #{detail['name']}"
-    #print "#{$color_install}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
-
-    #if $display_packages_size
-      #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
-
-      #print "#{$color_description}"
-      #print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-      #print "#{detail['size']['after']}"
-      #print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + detail['size']['unit'].length + $spaces_between_unit)}"
-      #print "#{COLOR_END}"
-    #end
-    
-    #print "\n"
-  #end
-
-  ## size to download and install
-  #puts "\n#{aptitude_string.split(/\n/)[-2]}"
-
-  #answer = ''
-  #while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
-    #print "\n\033[1mContinue the installation ? (Y/n)\033[0m "
-    #answer = STDIN.gets.chomp
-    #if answer.empty?
-      #answer = 'y'
-    #end
-  #end
-
-  #if not answer.downcase.eql? 'n'
-    #execute_command(command, true)
-  #end
 end
 
 
@@ -576,9 +519,13 @@ def remove(package, purge = false)
   if purge
     aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
     command = "aptitude purge #{package}"
+
+    operation = "Purging"
   else
     aptitude_string = `aptitude remove -VZs --assume-yes #{package}`
     command = "aptitude remove #{package}"
+
+    operation = "Removing"
   end
 
   # if problem with dependencies, wrong name given,
@@ -593,74 +540,15 @@ def remove(package, purge = false)
     exit 0
   end
 
-  packages = [[]]
+  # Remove the "p" paraleter on packages to purge
+  aptitude_string.sub!(/\{p\}/, '')
 
-  first_remove_explicitly = false
-  first_remove_dep = false
+  packages = [[]]
 
   # split packages
   packages = aptitude_string.split(/ {2}/)
 
-  if purge
-    packages_removed_explicitly = packages.reject { |pack| not pack =~ /\{p\}/ }
-  else
-    packages_removed_explicitly = packages.reject { |pack| pack =~ /\{u\}/ }
-  end
-
-  packages_removed_as_dep = packages - packages_removed_explicitly
-
-  packages = packages_removed_explicitly + packages_removed_as_dep
-
-  analysis = analysis_packages packages
-  max      = analysis['max']
-  details  = analysis['details']
-  
-  print_header(max['name'], max['version'])
-
-  details.each do |detail|
-    if not first_remove_explicitly
-      if purge
-        puts "\033[1mPurging:\033[0m"
-      else
-        puts "\033[1mRemoving:\033[0m"
-      end
-      first_remove_explicitly = true
-    end
-
-    if (not first_remove_dep) and (detail['parameter'] == 'u' or detail['parameter'] == 'p')
-      puts "\n\033[1mRemoving unused dependencies:\033[0m"
-      first_remove_dep = true
-    end
-
-    print "  #{detail['name']}"
-    print "#{$color_remove}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
-
-    if $display_packages_size
-      detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
-
-      print "#{$color_description}"
-      print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-      print "#{detail['size']['after']}"
-      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + detail['size']['unit'].length + $spaces_between_unit)}"
-      print "#{COLOR_END}"
-    end
-
-    print "\n"
-  end
-
-  # size free
-  puts "\n#{aptitude_string.split(/\n/)[-2]}"
-
-  answer = ''
-  while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
-    print "\n\033[1mRemove these packages ? (Y/n)\033[0m "
-    answer = STDIN.gets.chomp
-    if answer.empty?
-      answer = 'y'
-    end
-  end
-
-  if not answer.downcase.eql? 'n'
+  if display_packages(packages, operation, $color_remove, operation + ' these packages', aptitude_string.split(/\n/)[-2])
     execute_command(command, true)
   end
 end
