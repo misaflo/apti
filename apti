@@ -145,6 +145,83 @@ def analysis_packages packages
 end
 
 
+def display_packages(packages, operation, color, question)
+  analysis = analysis_packages packages
+  max      = analysis['max']
+  details  = analysis['details']
+
+  explicit    = []
+  dep_install = []
+  dep_remove  = []
+  #dep_upgrade = []
+  
+  details.each do |detail|
+    case detail['parameter']
+    when 'a'
+      dep_install << detail
+
+    when 'p', 'u'
+      dep_remove  << detail
+
+    #when ''
+      #dep_upgrade << detail
+      
+    else
+      explicit << detail
+    end
+  end
+
+  print_header(max['name'], max['version'])
+
+  puts "\033[1m#{operation} :\033[0m"
+  explicit.each { |detail| display_package_line(detail, color) }
+
+  puts "\n\033[1mInstalling for dependencies :\033[0m"
+  dep_install.each { |detail| display_package_line(detail, $color_install) }
+
+  #puts "\n\033[1mUpdating for dependencies :\033[0m"
+  #dep_upgrade.each { |detail| display_package_line(detail, $color_remove) }
+
+  puts "\n\033[1mRemoving for dependencies :\033[0m"
+  dep_remove.each { |detail| display_package_line(detail, $color_remove) }
+
+  # size to download and install
+  puts "\n#{aptitude_string.split(/\n/)[-2]}"
+
+  answer = ''
+  while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
+    print "\n\033[1mContinue the #{question} ? (Y/n)\033[0m "
+    answer = STDIN.gets.chomp
+    if answer.empty?
+      answer = 'y'
+    end
+  end
+
+  return (not answer.downcase.eql? 'n')
+end
+
+def display_package_line(line, color)
+  print "  #{line['name']}"
+  print "#{color}#{''.rjust((max['name'] - line['name'].length) + $spaces_between_columns)}#{line['version']['old']}#{COLOR_END}"
+
+  if not line['version']['new'].nil?
+    print "#{' -> '.rjust((max['version']['old'] - line['version']['old'].length) + ' -> '.length)}#{$color_install}#{line['version']['new']}#{COLOR_END}"
+  end
+
+  if $display_packages_size and not line['size']['before'].nil?
+    line_size_after_length = (line['size']['after'].nil? ? 0 : line['size']['after'].length)
+
+    print "#{$color_description}"
+    print "#{line['size']['before'].rjust((max['version']['all'] - line['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+    print "#{line['size']['after']}"
+    print "#{line['size']['unit'].rjust((max['size']['after'] - line_size_after_length) + (max['size']['unit'] - line['size']['unit'].length) + line['size']['unit'].length + $spaces_between_unit)}"
+    print "#{COLOR_END}"
+  end
+  
+  print "\n"
+end
+
+
 #
 # Print header for install, remove and upgrade.
 #
