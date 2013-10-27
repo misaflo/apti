@@ -5,7 +5,7 @@
 
 ## apti 0.4
 
-* display size in upgrade
+* display size in `upgrade`
 
 ## next
 
