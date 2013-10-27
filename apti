@@ -145,7 +145,7 @@ def analysis_packages packages
 end
 
 
-def display_packages(packages, operation, color, question)
+def display_packages(packages, operation, color, question, download_size)
   analysis = analysis_packages packages
   max      = analysis['max']
   details  = analysis['details']
@@ -174,19 +174,25 @@ def display_packages(packages, operation, color, question)
   print_header(max['name'], max['version'])
 
   puts "\033[1m#{operation} :\033[0m"
-  explicit.each { |detail| display_package_line(detail, color) }
+  explicit.each { |detail| display_package_line(detail, max, color) }
 
-  puts "\n\033[1mInstalling for dependencies :\033[0m"
-  dep_install.each { |detail| display_package_line(detail, $color_install) }
+  if not dep_install.empty?
+    puts "\n\033[1mInstalling for dependencies :\033[0m"
+    dep_install.each { |detail| display_package_line(detail, max, $color_install) }
+  end
 
-  #puts "\n\033[1mUpdating for dependencies :\033[0m"
-  #dep_upgrade.each { |detail| display_package_line(detail, $color_remove) }
+  #if not dep_upgrade.empty?
+    #puts "\n\033[1mUpdating for dependencies :\033[0m"
+    #dep_upgrade.each { |detail| display_package_line(detail, max, $color_remove) }
+  #end
 
-  puts "\n\033[1mRemoving for dependencies :\033[0m"
-  dep_remove.each { |detail| display_package_line(detail, $color_remove) }
+  if not dep_remove.empty?
+    puts "\n\033[1mRemoving for dependencies :\033[0m"
+    dep_remove.each { |detail| display_package_line(detail, max, $color_remove) }
+  end
 
   # size to download and install
-  puts "\n#{aptitude_string.split(/\n/)[-2]}"
+  puts "\n#{download_size}"
 
   answer = ''
   while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
@@ -200,7 +206,7 @@ def display_packages(packages, operation, color, question)
   return (not answer.downcase.eql? 'n')
 end
 
-def display_package_line(line, color)
+def display_package_line(line, max, color)
   print "  #{line['name']}"
   print "#{color}#{''.rjust((max['name'] - line['name'].length) + $spaces_between_columns)}#{line['version']['old']}#{COLOR_END}"
 
@@ -493,65 +499,69 @@ def install package
 
   packages = [[]]
 
-  first_install_explicitly = false
-  first_install_as_dep = false
+  #first_install_explicitly = false
+  #first_install_as_dep = false
 
   # split packages
   packages = aptitude_string.split(/ {2}/)
-
-  packages_installed_explicitly = packages.reject { |package| package =~ /\{a\}/ }
-  packages_installed_as_dep = packages - packages_installed_explicitly
-
-  packages = packages_installed_explicitly + packages_installed_as_dep
-
-  analysis = analysis_packages packages
-  max      = analysis['max']
-  details  = analysis['details']
   
-  print_header(max['name'], max['version'])
-
-  details.each do |detail|
-    if not first_install_explicitly
-      puts "\033[1mInstalling:\033[0m"
-      first_install_explicitly = true
-    end
-
-    if (not first_install_as_dep) and (detail['parameter'] == 'a')
-      puts "\n\033[1mInstalling for dependencies:\033[0m"
-      first_install_as_dep = true
-    end
-
-    print "  #{detail['name']}"
-    print "#{$color_install}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
-
-    if $display_packages_size
-      detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
-
-      print "#{$color_description}"
-      print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-      print "#{detail['size']['after']}"
-      print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + detail['size']['unit'].length + $spaces_between_unit)}"
-      print "#{COLOR_END}"
-    end
-    
-    print "\n"
-  end
-
-  # size to download and install
-  puts "\n#{aptitude_string.split(/\n/)[-2]}"
-
-  answer = ''
-  while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
-    print "\n\033[1mContinue the installation ? (Y/n)\033[0m "
-    answer = STDIN.gets.chomp
-    if answer.empty?
-      answer = 'y'
-    end
-  end
-
-  if not answer.downcase.eql? 'n'
+  if display_packages(packages, 'Installing', $color_install, 'Installation', aptitude_string.split(/\n/)[-2])
     execute_command(command, true)
   end
+
+  #packages_installed_explicitly = packages.reject { |package| package =~ /\{a\}/ }
+  #packages_installed_as_dep = packages - packages_installed_explicitly
+
+  #packages = packages_installed_explicitly + packages_installed_as_dep
+
+  #analysis = analysis_packages packages
+  #max      = analysis['max']
+  #details  = analysis['details']
+  
+  #print_header(max['name'], max['version'])
+
+  #details.each do |detail|
+    #if not first_install_explicitly
+      #puts "\033[1mInstalling:\033[0m"
+      #first_install_explicitly = true
+    #end
+
+    #if (not first_install_as_dep) and (detail['parameter'] == 'a')
+      #puts "\n\033[1mInstalling for dependencies:\033[0m"
+      #first_install_as_dep = true
+    #end
+
+    #print "  #{detail['name']}"
+    #print "#{$color_install}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
+
+    #if $display_packages_size
+      #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
+
+      #print "#{$color_description}"
+      #print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+      #print "#{detail['size']['after']}"
+      #print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + detail['size']['unit'].length + $spaces_between_unit)}"
+      #print "#{COLOR_END}"
+    #end
+    
+    #print "\n"
+  #end
+
+  ## size to download and install
+  #puts "\n#{aptitude_string.split(/\n/)[-2]}"
+
+  #answer = ''
+  #while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
+    #print "\n\033[1mContinue the installation ? (Y/n)\033[0m "
+    #answer = STDIN.gets.chomp
+    #if answer.empty?
+      #answer = 'y'
+    #end
+  #end
+
+  #if not answer.downcase.eql? 'n'
+    #execute_command(command, true)
+  #end
 end
 
 
