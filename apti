@@ -325,87 +325,11 @@ def upgrade(packages, full_upgrade = false)
 
   packages = [[]]
 
-  first_install = false
-  first_remove  = false
-  first_update  = false
-
   # split packages
   packages = aptitude_string.split(/ {2}/)
 
-  analysis = analysis_packages packages
-  max      = analysis['max']
-  details  = analysis['details']
-  
-  print_header(max['name'], max['version'], false)
-  #print_header(max['name'], max['version'])
-
-  details.each do |detail|
-    case detail['parameter']
-    when 'a'
-      color = $color_install
-      if not first_install
-        if first_remove or first_update
-          puts "\n"
-        end
-        puts "\033[1mInstalling:\033[0m"
-        first_install = true
-      end
-
-    when 'u'
-      color = $color_remove
-      if not first_remove
-        if first_install or first_update
-          puts "\n"
-        end
-        puts "\033[1mRemoving:\033[0m"
-        first_remove = true
-      end
-
-    else
-      color = $color_remove
-      if not first_update
-        if first_install or first_remove
-          puts "\n"
-        end
-        puts "\033[1mUpdating:\033[0m"
-        first_update = true
-      end
-    end
-
-    print "  #{detail['name']}"
-    print "#{color}#{''.rjust((max['name'] - detail['name'].length) + $spaces_between_columns)}#{detail['version']['old']}#{COLOR_END}"
-
-    if not detail['version']['new'].nil?
-      print "#{$color_install}#{' -> '.rjust((max['version']['old'] - detail['version']['old'].length) + ' -> '.length)}#{detail['version']['new']}#{COLOR_END}"
-    end
-
-    #if $display_packages_size
-      #detail_size_after_length = (detail['size']['after'].nil? ? 0 : detail['size']['after'].length)
-
-      #print "#{$color_description}"
-      #print "#{detail['size']['before'].rjust((max['version']['all'] - detail['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-      #print "#{detail['size']['after']}"
-      #print "#{detail['size']['unit'].rjust((max['size']['after'] - detail_size_after_length) + (max['size']['unit'] - detail['size']['unit'].length) + $spaces_between_unit)}"
-      #print "#{COLOR_END}"
-    #end
-    
-    print "\n"
-  end
-
-  # size to download and install
-  puts "\n#{aptitude_string.split(/\n/)[-2]}"
-
-  answer = ''
-  while (not answer.downcase.eql? 'y') and (not answer.downcase.eql? 'n')
-    print "\n\033[1mContinue the upgrade ? (Y/n)\033[0m "
-    answer = STDIN.gets.chomp
-    if answer.empty?
-      answer = 'y'
-    end
-  end
-
-  if not answer.downcase.eql? 'n'
-    execute_command(command, true)
+  if display_packages(packages, 'Upgrading', $color_remove, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
+    execute_command(comand, true)
   end
 end
 
