@@ -311,7 +311,7 @@ def upgrade(packages, full_upgrade = false)
     aptitude_string = `aptitude safe-upgrade -Vs --allow-untrusted --assume-yes #{packages}`
     command = "aptitude safe-upgrade #{packages}"
   end
-
+ 
   # if problem with dependencies, use aptitude
   if aptitude_string.include? "1)"
     execute_command command
