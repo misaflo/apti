@@ -645,17 +645,16 @@ end
 def read_config config_dir
   require "yaml"
 
-  #TODO: use defaults values if wrong config file
   app_config = YAML::load_file "#{config_dir}/apti/aptirc.yml"
 
-  $color_install          = app_config["color_install"]
-  $color_remove           = app_config["color_remove"]
-  $color_description      = app_config["color_description"]
-  $display_packages_size  = app_config["display_packages_size"]
-  $spaces_between_columns = app_config["spaces_between_columns"]
-  $spaces_between_unit    = app_config["spaces_between_unit"]
-  $spaces_search          = app_config["spaces_search"]
-  $no_confirm             = app_config["no_confirm"]
+  $color_install          = (app_config["color_install"] or "\e[1;32m")
+  $color_remove           = (app_config["color_remove"] or "\e[1;31m")
+  $color_description      = (app_config["color_description"] or "\e[1;30m")
+  $display_packages_size  = (app_config["display_packages_size"] or true)
+  $spaces_between_columns = (app_config["spaces_between_columns"] or 2)
+  $spaces_between_unit    = (app_config["spaces_between_unit"] or 1)
+  $spaces_search          = (app_config["spaces_search"] or 40)
+  $no_confirm             = (app_config["no_confirm"] or false)
 end
 
 
