@@ -66,7 +66,7 @@ def help
   puts "  install package"
   puts "  remove package"
   puts "  others aptitude commande..."
-  puts "  --stats"
+  puts "  stats"
 end
 
 
@@ -103,7 +103,7 @@ end
 #
 # @return [Hash{String => Hash{String => Fixnum, String, Hash{String => Fixnum, String}}}] Largest sizes and details of sections of package line : name, version
 #   (old / current and new) and size (integer part, decimal part and unit)
-def analysis_packages (packages)
+def analysis_packages(packages)
   max                   = Hash.new
   max['name']           = 0
   max['version']        = Hash.new
@@ -377,7 +377,7 @@ def upgrade(packages, full_upgrade = false)
     exit 0
   end
 
-  packages = [[]]
+  packages = []
 
   # split packages
   packages = aptitude_string.split(/ {2}/)
@@ -475,7 +475,7 @@ def install package
     exit 0
   end
 
-  packages = [[]]
+  packages = []
 
   # split packages
   packages = aptitude_string.split(/ {2}/)
@@ -521,7 +521,7 @@ def remove(package, purge = false)
   # Remove the "p" paraleter on packages to purge
   aptitude_string.sub!(/\{p\}/, '')
 
-  packages = [[]]
+  packages = []
 
   # split packages
   packages = aptitude_string.split(/ {2}/)
@@ -666,7 +666,7 @@ when "purge"
 when "install"
   install packages
 
-when "--stats"
+when "stats"
   stats
 
 when "--help"
