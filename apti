@@ -26,7 +26,7 @@
 ****************************************************************************
 =end
 
-# Configuration in ~/.config/apti/aptirc.rb (by default)
+# Configuration in ~/.config/apti/aptirc.yml (by default)
 
 APTI_VERSION      = "0.3-dev"
 $VERBOSE          = true  # enable warnings
@@ -72,8 +72,9 @@ end
 #
 # Separate packages in analysis parts
 #
-# @param packages [Array<String>] list of packages
-# @return [Hash{String => Fixnum}] largest size of "name", "version", and "size"
+# @param packages [Array<String>] List of packages
+# @return [Hash{String => Hash{String => Fixnum, String, Hash{String => Fixnum, String}}}] Largest sizes and details of sections of package line : name, version
+#   (old / current and new) and size (integer part, decimal part and unit)
 #
 def analysis_packages packages
   max                   = Hash.new
@@ -144,7 +145,16 @@ def analysis_packages packages
   return out
 end
 
-
+#
+# Display all packages of an operation (install, upgrade or remove)
+#
+# @param packages       [Array<String>] List of packages (analysis_packages called automaticaly)
+# @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
+# @param color          [String]        Color (Linux bash color notation) to use for old / current package version
+# @param question       [String]        Question to ask for continuing operation after displaying packages list
+# @param download_size  [String]        Aptitude's text about download sizes
+# @return [Void]
+#
 def display_packages(packages, operation, color, question, download_size)
   analysis = analysis_packages packages
   max      = analysis['max']
@@ -171,7 +181,7 @@ def display_packages(packages, operation, color, question, download_size)
     end
   end
 
-  print_header(max['name'], max['version'])
+  print_header(max['name'], max['version']['all'])
 
   puts "\033[1m#{operation} :\033[0m"
   explicit.each { |detail| display_package_line(detail, max, color) }
@@ -187,7 +197,7 @@ def display_packages(packages, operation, color, question, download_size)
   #end
 
   if not dep_remove.empty?
-    puts "\n\033[1mRemoving for dependencies :\033[0m"
+    puts "\n\033[1mRemoving for unused :\033[0m"
     dep_remove.each { |detail| display_package_line(detail, max, $color_remove) }
   end
 
@@ -206,6 +216,14 @@ def display_packages(packages, operation, color, question, download_size)
   return (not answer.downcase.eql? 'n')
 end
 
+#
+# Displaying the line of ONE package
+#
+# @param line   [Hash{String => String, Hash{String => String}}]    Details of package to display
+# @param max    [Hash{String => Fixnum, Hash{String => Fixnum}}]    Largest sizes of sections
+# @param color  [String]                                            Color (Linux bash color notation) to use for old / current package version
+# @return [Void]
+#
 def display_package_line(line, max, color)
   print "  #{line['name']}"
   print "#{color}#{''.rjust((max['name'] - line['name'].length) + $spaces_between_columns)}#{line['version']['old']}#{COLOR_END}"
@@ -236,7 +254,7 @@ end
 # @param display_version [Boolean]
 # @return [void]
 #
-def print_header(largest_name, largest_version, display_version = true)
+def print_header(largest_name, largest_version)
   terminal_width  = `tput cols`.to_i
 
   # Ligne du haut
@@ -253,8 +271,8 @@ def print_header(largest_name, largest_version, display_version = true)
   print "  #{header_package}"
   print "#{''.rjust(largest_name - header_package.length + $spaces_between_columns)}"
   print "#{header_version}"
-  if $display_packages_size and display_version
-    print "#{''.rjust(largest_version['all'] - header_version.length + $spaces_between_columns + 1)}"
+  if $display_packages_size
+    print "#{''.rjust(largest_version - header_version.length + $spaces_between_columns + 1)}"
     print "#{header_size}"
   end
   print "\n"
