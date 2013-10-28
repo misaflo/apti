@@ -305,6 +305,8 @@ end
 #
 # Execute the command with superuser rights if needed.
 #
+# TODO documentation of "no_confirm" parameter
+#
 # @param command    [String]    Command to execute
 # @param no_confirm [Boolean]   
 #
@@ -370,6 +372,8 @@ end
 
 #
 # Search packages
+#
+# TODO documentation of "packages" parameter
 #
 # @param package  [String]
 #
