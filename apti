@@ -29,19 +29,19 @@
 # Configuration in ~/.config/apti/aptirc.yml (by default)
 
 #
-# Version for apti
+# Version of apti.
 #
 APTI_VERSION      = "0.3-dev"
 #
 # Enable warnings ?
 #
-$VERBOSE          = true  # enable warnings
+$VERBOSE          = true
 #
-# Constant for stopping color (Linux bash color notation)
+# Constant for stopping color (Linux bash color notation).
 #
 COLOR_END         = "\e[0m"
 #
-# List operations needs super-user rights
+# Operations needing superuser rights.
 #
 NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
                          "markauto", "unmarkauto", "build-depends", "build-dep", "forbid-version",
@@ -56,8 +56,7 @@ NEED_SUPERUSER_RIGHTS = ["install", "remove", "purge", "hold", "unhold", "keep",
 #
 # Display help.
 #
-# @return [Void]
-#
+# @return [void]
 def help
   puts "usage: #{File.basename $0} commande"
   puts "Commandes:"
@@ -74,8 +73,7 @@ end
 #
 # Display version.
 #
-# @return [Void]
-#
+# @return [void]
 def version
   puts "apti #{APTI_VERSION}"
 end
@@ -88,7 +86,6 @@ end
 #
 # @return [Hash{String => Hash{String => Fixnum, String, Hash{String => Fixnum, String}}}] Largest sizes and details of sections of package line : name, version
 #   (old / current and new) and size (integer part, decimal part and unit)
-#
 def analysis_packages (packages)
   max                   = Hash.new
   max['name']           = 0
@@ -106,7 +103,7 @@ def analysis_packages (packages)
 
   packages.each do |package|
     # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-    #                 name                  parameter           version_old           ->  version_new                                    size_before                  size_after          size_unit
+    #                 name                  parameter           version_old           ->  version_new                 size_before                                   size_after          size_unit
     if package =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,][[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
       detail                   = Hash.new
       detail['name']           = $1
@@ -161,7 +158,7 @@ def analysis_packages (packages)
 end
 
 #
-# Display all packages of an operation (install, upgrade or remove)
+# Display all packages of an operation (install, upgrade or remove).
 #
 # @param packages       [Array<String>] List of packages (analysis_packages called automaticaly)
 # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
@@ -169,9 +166,9 @@ end
 # @param question       [String]        Question to ask for continuing operation after displaying packages list
 # @param download_size  [String]        Aptitude's text about download sizes
 #
-# @return [Void]
-#
+# @return [void]
 def display_packages(packages, operation, color, question, download_size)
+  # REVIEW: dep_upgrade usefull ?
   analysis = analysis_packages packages
   max      = analysis['max']
   details  = analysis['details']
@@ -200,11 +197,11 @@ def display_packages(packages, operation, color, question, download_size)
   print_header(max['name'], max['version']['all'])
 
   puts "\033[1m#{operation} :\033[0m"
-  explicit.each { |detail| display_package_line(detail, max, color) }
+  explicit.each { |detail| display_package_line(detail, max, color, operation) }
 
   if not dep_install.empty?
     puts "\n\033[1mInstalling for dependencies :\033[0m"
-    dep_install.each { |detail| display_package_line(detail, max, $color_install) }
+    dep_install.each { |detail| display_package_line(detail, max, $color_install, operation) }
   end
 
   #if not dep_upgrade.empty?
@@ -214,7 +211,7 @@ def display_packages(packages, operation, color, question, download_size)
 
   if not dep_remove.empty?
     puts "\n\033[1mRemoving for unused :\033[0m"
-    dep_remove.each { |detail| display_package_line(detail, max, $color_remove) }
+    dep_remove.each { |detail| display_package_line(detail, max, $color_remove, operation) }
   end
 
   # size to download and install
@@ -229,19 +226,20 @@ def display_packages(packages, operation, color, question, download_size)
     end
   end
 
-  return (not answer.downcase.eql? 'n')
+  return (answer.downcase.eql? 'y')
 end
 
+
 #
-# Displaying the line of ONE package
+# Displaying the line of ONE package.
 #
-# @param line   [Hash{String => String, Hash{String => String}}]    Details of package to display
-# @param max    [Hash{String => Fixnum, Hash{String => Fixnum}}]    Largest sizes of sections
-# @param color  [String]                                            Color (Linux bash color notation) to use for old / current package version
+# @param line       [Hash{String => String, Hash{String => String}}]  Details of package to display
+# @param max        [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections
+# @param color      [String]                                          Color (Linux bash color notation) to use for old / current package version
+# @param operation  [String]                                          Operation requested : "Installing", "Upgrading" or "Removing"
 #
-# @return [Void]
-#
-def display_package_line(line, max, color)
+# @return [void]
+def display_package_line(line, max, color, operation)
   print "  #{line['name']}"
   print "#{color}#{''.rjust((max['name'] - line['name'].length) + $spaces_between_columns)}#{line['version']['old']}#{COLOR_END}"
 
@@ -253,7 +251,14 @@ def display_package_line(line, max, color)
     line_size_after_length = (line['size']['after'].nil? ? 0 : line['size']['after'].length)
 
     print "#{$color_description}"
-    print "#{line['size']['before'].rjust((max['version']['all'] - line['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+
+    if (operation.eql? 'Upgrading')
+      print "#{line['size']['before'].rjust(max['version']['new'] - line['version']['new'].length + $spaces_between_columns + max['size']['before'])}"
+    
+    else
+      print "#{line['size']['before'].rjust((max['version']['all'] - line['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
+    end
+
     print "#{line['size']['after']}"
     print "#{line['size']['unit'].rjust((max['size']['after'] - line_size_after_length) + (max['size']['unit'] - line['size']['unit'].length) + line['size']['unit'].length + $spaces_between_unit)}"
     print "#{COLOR_END}"
@@ -266,11 +271,10 @@ end
 #
 # Print header for install, remove and upgrade.
 #
-# @param largest_name     [Fixnum]   Largest size for package name
-# @param largest_version  [Fixnum]   Largest size for complete version (old / current AND new)
+# @param largest_name     [Fixnum]  Largest size of package name
+# @param largest_version  [Fixnum]  Largest size of complete version (old / current AND new)
 #
-# @return [Void]
-#
+# @return [void]
 def print_header(largest_name, largest_version)
   terminal_width  = `tput cols`.to_i
 
@@ -305,13 +309,10 @@ end
 #
 # Execute the command with superuser rights if needed.
 #
-# TODO documentation of "no_confirm" parameter
+# @param command    [String]  Command to execute
+# @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes)
 #
-# @param command    [String]    Command to execute
-# @param no_confirm [Boolean]   
-#
-# @return [Void]
-#
+# @return [void]
 def execute_command(command, no_confirm = false)
   if not NEED_SUPERUSER_RIGHTS.include? command.split[1]
     system command
@@ -332,13 +333,12 @@ end
 
 
 #
-# Do upgrade
+# Do upgrade (safe-upgrade or full-upgrade).
 #
-# @param packages     [String]    List of packages to upgrade
-# @param full_upgrade [Boolean]   True if full-upgrade, else safe-upgrade
+# @param packages     [String]  List of packages to upgrade
+# @param full_upgrade [Boolean] True if full-upgrade, else safe-upgrade
 #
-# @return [Void]
-#
+# @return [void]
 def upgrade(packages, full_upgrade = false)
   if full_upgrade
     aptitude_string = `aptitude full-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
@@ -365,20 +365,17 @@ def upgrade(packages, full_upgrade = false)
   packages = aptitude_string.split(/ {2}/)
 
   if display_packages(packages, 'Upgrading', $color_remove, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
-    execute_command(comand, true)
+    execute_command(command, true)
   end
 end
 
 
 #
-# Search packages
+# Search packages.
 #
-# TODO documentation of "packages" parameter
+# @param package [String] Package(s) to search.
 #
-# @param package  [String]
-#
-# @return [Void]
-#
+# @return [void]
 def search(package)
   aptitude_string = `aptitude search --disable-columns #{package}`
   terminal_width  = `tput cols`.to_i
@@ -444,12 +441,11 @@ end
 
 
 #
-# Install packages
+# Install packages.
 #
-# @param package  [String]    List of packages to install
+# @param package [String] List of packages to install
 #
-# @return [Void]
-#
+# @return [void]
 def install package
   aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
   command = "aptitude install #{package}"
@@ -475,11 +471,10 @@ end
 #
 # Remove / Purge packages
 #
-# @param package  [String]    List of packages to remove / purge
-# @param purge    [Boolean]   True if purging packages else removing
+# @param package  [String]  List of packages to remove / purge
+# @param purge    [Boolean] True if purging packages else removing
 #
-# @return [Void]
-#
+# @return [void]
 def remove(package, purge = false)
   if purge
     aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
@@ -522,8 +517,7 @@ end
 #
 # Print stats about packages.
 #
-# @return [Void]
-#
+# @return [void]
 def stats
   packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
   packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
@@ -540,10 +534,9 @@ end
 #
 # Write configuration file.
 #
-# @param config_dir   [String]    Directory containing configuration file
+# @param config_dir [String] Directory containing configuration file
 #
-# @return [Void]
-#
+# @return [void]
 def write_config config_dir
   require "fileutils"
 
@@ -572,10 +565,9 @@ end
 #
 # Read configuration file.
 #
-# @param config_dir   [String]    Directory containing configuration file
+# @param config_dir [String] Directory containing configuration file
 #
-# @return [Void]
-#
+# @return [void]
 def read_config config_dir
   require "yaml"
 
@@ -595,8 +587,7 @@ end
 #
 # Return the directory containing configuration file (configuration directory).
 #
-# @return [String]    Le path of directory
-#
+# @return [String] The path of directory
 def get_config_dir
   if ENV["XDG_CONFIG_HOME"].nil?
     return "#{ENV["HOME"]}/.config"

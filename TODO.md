@@ -5,7 +5,7 @@
 
 ## apti 0.4
 
-* display size in `upgrade`
+* cleaning and testing of code
 
 ## next
 
