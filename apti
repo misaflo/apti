@@ -80,7 +80,24 @@ end
 
 
 #
-# Separate packages in analysis parts.
+# Separate packages in analysis parts, and return a Hash as bellow :
+#
+#   Hash{max, Array<detail>}
+#
+#   max['name']           : length of largest name
+#   max['version']['old'] : length of largest old (for upgrade) or current version
+#   max['version']['new'] : length of the largest new version (only for upgrade)
+#   max['size']['before'] : length of the size of the package, before the decimal
+#   max['size']['after']  : length of the size of the package, after the decimal
+#   max['size']['unit']   : length of the size's unit
+#
+#   detail['name']            : name of the package
+#   detail['parameter']       : aptitude's information : a, u, p
+#   detail['version']['old']  : old / current version of the package
+#   detail['version']['new']  : new version of the package (only for upgrade)
+#   detail['size']['before']  : size of the package, before the decimal
+#   detail['size']['after']   : size of the package, after the decimal
+#   detail['size']['unit']    : size's unit
 #
 # @param packages [Array<String>] List of packages
 #
@@ -156,6 +173,7 @@ def analysis_packages (packages)
 
   return out
 end
+
 
 #
 # Display all packages of an operation (install, upgrade or remove).
