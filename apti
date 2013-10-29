@@ -215,11 +215,11 @@ def display_packages(packages, operation, color, question, download_size)
   print_header(max['name'], max['version']['all'])
 
   puts "\033[1m#{operation} :\033[0m"
-  explicit.each { |detail| display_package_line(detail, max, color, operation) }
+  explicit.each { |detail| display_package_line(detail, max, color) }
 
   if not dep_install.empty?
     puts "\n\033[1mInstalling for dependencies :\033[0m"
-    dep_install.each { |detail| display_package_line(detail, max, $color_install, operation) }
+    dep_install.each { |detail| display_package_line(detail, max, $color_install) }
   end
 
   #if not dep_upgrade.empty?
@@ -229,7 +229,7 @@ def display_packages(packages, operation, color, question, download_size)
 
   if not dep_remove.empty?
     puts "\n\033[1mRemoving for unused :\033[0m"
-    dep_remove.each { |detail| display_package_line(detail, max, $color_remove, operation) }
+    dep_remove.each { |detail| display_package_line(detail, max, $color_remove) }
   end
 
   # size to download and install
@@ -254,29 +254,24 @@ end
 # @param line       [Hash{String => String, Hash{String => String}}]  Details of package to display
 # @param max        [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections
 # @param color      [String]                                          Color (Linux bash color notation) to use for old / current package version
-# @param operation  [String]                                          Operation requested : "Installing", "Upgrading" or "Removing"
 #
 # @return [void]
-def display_package_line(line, max, color, operation)
+def display_package_line(line, max, color)
   print "  #{line['name']}"
   print "#{color}#{''.rjust((max['name'] - line['name'].length) + $spaces_between_columns)}#{line['version']['old']}#{COLOR_END}"
 
   if not line['version']['new'].nil?
     print "#{' -> '.rjust((max['version']['old'] - line['version']['old'].length) + ' -> '.length)}#{$color_install}#{line['version']['new']}#{COLOR_END}"
+    rjust_size = max['version']['new'] - line['version']['new'].length
+  else
+    rjust_size = max['version']['all'] - line['version']['old'].length
   end
 
   if $display_packages_size and not line['size']['before'].nil?
     line_size_after_length = (line['size']['after'].nil? ? 0 : line['size']['after'].length)
 
     print "#{$color_description}"
-
-    if (operation.eql? 'Upgrading')
-      print "#{line['size']['before'].rjust(max['version']['new'] - line['version']['new'].length + $spaces_between_columns + max['size']['before'])}"
-    
-    else
-      print "#{line['size']['before'].rjust((max['version']['all'] - line['version']['old'].length) + $spaces_between_columns + max['size']['before'])}"
-    end
-
+    print "#{line['size']['before'].rjust(rjust_size + $spaces_between_columns + max['size']['before'])}"
     print "#{line['size']['after']}"
     print "#{line['size']['unit'].rjust((max['size']['after'] - line_size_after_length) + (max['size']['unit'] - line['size']['unit'].length) + line['size']['unit'].length + $spaces_between_unit)}"
     print "#{COLOR_END}"
