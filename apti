@@ -31,7 +31,7 @@
 #
 # Version of apti.
 #
-APTI_VERSION      = "0.3-dev"
+APTI_VERSION      = "0.4-dev"
 #
 # Enable warnings ?
 #
@@ -155,10 +155,6 @@ def analysis_packages(packages)
       end
     
       details << detail
-
-    # NOTE: uncomment for debug
-    #else
-    #  print "Fail to analyse package : #{package}\n"
     end
   end
 
@@ -186,7 +182,6 @@ end
 #
 # @return [void]
 def display_packages(packages, operation, color, question, download_size)
-  # REVIEW: dep_upgrade usefull ?
   analysis = analysis_packages packages
   max      = analysis['max']
   details  = analysis['details']
@@ -194,7 +189,6 @@ def display_packages(packages, operation, color, question, download_size)
   explicit    = []
   dep_install = []
   dep_remove  = []
-  #dep_upgrade = []
   
   details.each do |detail|
     case detail['parameter']
@@ -204,9 +198,6 @@ def display_packages(packages, operation, color, question, download_size)
     when 'u'
       dep_remove  << detail
 
-    #when ''
-      #dep_upgrade << detail
-      
     else
       explicit << detail
     end
@@ -221,11 +212,6 @@ def display_packages(packages, operation, color, question, download_size)
     puts "\n\033[1mInstalling for dependencies :\033[0m"
     dep_install.each { |detail| display_package_line(detail, max, $color_install) }
   end
-
-  #if not dep_upgrade.empty?
-    #puts "\n\033[1mUpdating for dependencies :\033[0m"
-    #dep_upgrade.each { |detail| display_package_line(detail, max, $color_remove) }
-  #end
 
   if not dep_remove.empty?
     puts "\n\033[1mRemoving for unused :\033[0m"
