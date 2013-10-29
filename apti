@@ -31,7 +31,7 @@
 #
 # Version of apti.
 #
-APTI_VERSION      = "0.3-dev"
+APTI_VERSION      = "0.4"
 #
 # Enable warnings ?
 #
