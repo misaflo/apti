@@ -3,7 +3,11 @@
 
 module Config
   class Color
-    attr_accessor :install, :remove, :description
+    COLOR_GREY  = 30
+    COLOR_RED   = 31
+    COLOR_GREEN = 32
+
+    attr_reader :install, :remove, :description
   end
 end
 
