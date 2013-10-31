@@ -45,16 +45,16 @@ module Apti
           return default_value
         end
 
-        if color =~ /^[[:digit:]]{1,3}$/    # Si un nombre (forcément compris entre 0 et 255 inclus)
+        if !(color.to_s =~ /^[[:digit:]]{1,3}$/).nil?    # Si un nombre (forcément compris entre 0 et 255 inclus)
           return color
         end
 
-        cst = 'COLOR_' + color.upcase
-        if self.const_defined? cst, false
-          return self.const_get cst, false
+        color_constant = 'COLOR_' + color.upcase
+        if Colors.const_defined?(color_constant, false)
+          return Colors.const_get(color_constant, false)
         end
 
-        print "Configuration : Unable to get color from \"#{color}\""
+        print "Configuration : Unable to get color from \"#{color}\"\n"
         return default_value
       end
     end

@@ -41,7 +41,7 @@ module Apti
       def read_from(file)
         require 'yaml'
 
-        config = YAML::load_file(get_dir + file)
+        config = YAML::load_file("#{get_dir}#{file}")
 
         @colors.read_from(config['colors'])
         @spaces.read_from(config['spaces'])
@@ -63,14 +63,14 @@ module Apti
         end
       end
 
-      def create_default_file(file)
+      def create_default_file(filename)
         require 'yaml'
 
         yaml = {
           'colors'        =>  {
             'install'       =>  'green',
             'remove'        =>  'red',
-            'description'   =>  'gray'
+            'description'   =>  'grey'
           },
           'display_size'  =>  true,
           'spaces'        =>  {
@@ -86,7 +86,7 @@ module Apti
           FileUtils.mkdir_p = get_dir
         end
 
-        File.open("#{get_dir}#{file}", 'w') do |file|
+        File.open("#{get_dir}#{filename}", 'w') do |file|
           file.write(yaml)
         end
       end

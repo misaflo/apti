@@ -39,11 +39,11 @@ module Apti
           return default_value
         end
 
-        if space =~ /[[:digit:]]+/
+        if !(space.to_s =~ /^[[:digit:]]+$/).nil?
           return space
         end
 
-        print "Configuration : Unable to get number of spaces from \"#{space}\""
+        print "Configuration : Unable to get number of spaces from \"#{space}\"\n"
         return default_value
       end
     end
