@@ -1,11 +1,31 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
+# Apti configuration module
 module Config
-  class Config
-    attr_reader :color, :display_size, :spaces, :no_confirm
 
-    def initialize (file)
+  # Apti general configuration
+  class Config
+    #
+    # @!attribute colors [r]
+    #   @return [Colors] Colors.
+    #
+    # @!attribute display_size [r]
+    #   @return [Boolean] Display packages size or not ?
+    #
+    # @!attribute spaces [r]
+    #   @return [Spaces] Spaces.
+    #
+    # @!attribute no_confirm [r]
+    #   @return [String] Ask operation confirmation or not ?
+    attr_reader :colors, :display_size, :spaces, :no_confirm
+
+    def initialize(file)
+      @colors       = Config::Colors.new
+      @display_size = true
+      @spaces       = Config::Spaces.new
+      @no_confirm   = false
+
       path = getDir + file
 
       if not File.exists? path
@@ -13,6 +33,19 @@ module Config
       end
     end
 
+    def readFrom(file)
+      require 'yaml'
+
+      config = YAML::load_file(getDir + file)
+
+      @colors.readFrom(config['colors'])
+      @spaces.readFrom(config['spaces'])
+      
+      @display_size = readBoolean(config['display_size'], @display_size)
+      @no_confirm   = readBoolean(config['no_confirm'],   @no_confirm)
+    end
+
+    private
     def getDir
       return getEnvDir + '/apti/'
     end
@@ -28,7 +61,7 @@ module Config
       require 'yaml'
 
       yaml = {
-        'color'         =>  {
+        'colors'        =>  {
           'install'       =>  'green',
           'remove'        =>  'red',
           'description'   =>  'gray'
@@ -50,6 +83,14 @@ module Config
       File.open(getDir + file) do |file|
         file.write(yaml)
       end
+    end
+  
+    def readBoolean (bool, default_value)
+      if bool.nil?
+        return default_value
+      end
+
+      return bool
     end
   end
 end
