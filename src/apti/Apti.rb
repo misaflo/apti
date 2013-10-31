@@ -40,7 +40,7 @@ module Apti
     def initialize
       require_relative 'config/Config'
 
-      @config = Apti::Config::Config.new
+      #@config = Apti::Config::Config.new
     end
 
     # Display help.
@@ -97,6 +97,80 @@ module Apti
     #
     # @return [void]
     def search(package)
+      require_relative 'Package'
+
+      ###############################
+      color_install = "\e[1;32m"
+      color_description = "\e[1;30m"
+      color_end = "\e[0m"
+      spaces_search = 40
+      ###############################
+
+      aptitude_string = `aptitude search --disable-columns #{package}`
+      terminal_width  = `tput cols`.to_i
+
+      # information size (i, p, A, ...) : 6 seems to be good
+      package_parameter_length_alignment = 6
+
+      # for each package
+      aptitude_string.each_line do |package_line|
+        package = Package.new
+
+        package_str = package_line.split '- '
+
+        # parameter and name, ex: i A aptitude-common
+        package_parameter_and_name = package_str.first
+
+        package.description = ''
+
+        # construct the description (all after the first '-')
+        name_passed = false
+        package_str.each do |str|
+          if not name_passed
+            name_passed = true
+          else
+            package.description.concat "- #{str }"
+          end
+        end
+
+        # informations of the package: i, p, A, ...
+        package_info = package_parameter_and_name.split
+        package_info.pop
+        package.parameter = package_info.join(' ')
+
+        # just the package name (without informations)
+        package.name = package_parameter_and_name.split.last
+
+        # display package informations
+        print package.parameter
+
+        # print spaces between package_info and package.name
+        (package_parameter_length_alignment - package.parameter.length).times do
+          print ' '
+        end
+
+        # display package name: if the package is installed, we display it in color
+        if package_info.include? 'i'
+          print "#{color_install}#{package.name}#{color_end}"
+        else
+          print package.name
+        end
+
+        # print spaces between package.name and package_description
+        (spaces_search - package.name.length).times do
+          print ' '
+        end
+
+        size_of_line = package_parameter_length_alignment + spaces_search + package.description.length
+
+        # if description is too long, we shorten it
+        if size_of_line > terminal_width
+          package.description = package.description[0..(terminal_width - package_parameter_length_alignment - spaces_search - 1)]
+        end
+
+        # display the description
+        puts "#{color_description}#{package.description.chomp}#{color_end}"
+      end
     end
 
     # Print stats about packages.

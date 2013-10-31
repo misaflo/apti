@@ -28,6 +28,9 @@ module Apti
     # @!attribute name
     #   @return [String] Name of the package.
     #
+    # @!attribute parameter
+    #   @return [String] Aptitude's information : a, u, p, i, ...
+    #
     # @!attribute version_old
     #   @return [String] Old / current version of the package.
     #
@@ -41,10 +44,14 @@ module Apti
     #   @return [String] Size of the package, after the decimal.
     #
     # @!attribute size_unit
-    #   @return [String] Size's unit (B, kB, ...)
+    #   @return [String] Size's unit (B, kB, ...).
+    #
+    # @!attribute description
+    #   @return [String] Description of the package.
 
-    attr_accessor :name, :version_old, :version_new,
-      :size_before_decimal, :size_after_decimal, :size_unit
+    attr_accessor :name, :parameter, :version_old, :version_new,
+      :size_before_decimal, :size_after_decimal, :size_unit,
+      :description
   end
 
 end
