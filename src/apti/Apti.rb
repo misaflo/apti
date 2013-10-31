@@ -1,0 +1,170 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+module Apti
+
+  class Apti
+    # @!attribute config [r]
+    #   @return [Apti::Config::Config] Config.
+    #
+    # @!attribute VERSION [r]
+    #   @return [String] Apti's version.
+
+    VERSION = "0.4-dev"
+
+    attr_reader :config, :VERSION
+
+    # Reads the configuration file.
+    #
+    # @return [void]
+    def initialize
+      require_relative 'config/Config'
+
+      @config = Apti::Config::Config.new
+    end
+
+    # Display help.
+    #
+    # @return [void]
+    def help
+      puts "usage: #{File.basename $0} commande"
+      puts "Commandes:"
+      puts "  update"
+      puts "  safe-upgrade"
+      puts "  search package"
+      puts "  install package"
+      puts "  remove package"
+      puts "  others aptitude commande..."
+      puts "  stats"
+    end
+
+    # Display version.
+    #
+    # @return [void]
+    def version
+      puts "apti #{VERSION}"
+    end
+
+    # Install packages.
+    #
+    # @param package [String] List of packages to install
+    #
+    # @return [void]
+    def install(package)
+    end
+
+    # Remove / Purge packages.
+    #
+    # @param package  [String]  List of packages to remove / purge
+    # @param purge    [Boolean] True if purging packages else removing
+    #
+    # @return [void]
+    def remove(package, purge = false)
+    end
+
+    # Do upgrade (safe-upgrade or full-upgrade).
+    #
+    # @param packages     [String]  List of packages to upgrade
+    # @param full_upgrade [Boolean] True if full-upgrade, else safe-upgrade
+    #
+    # @return [void]
+    def upgrade(packages, full_upgrade = false)
+    end
+
+    # Search packages.
+    #
+    # @param package [String] Package(s) to search.
+    #
+    # @return [void]
+    def search(package)
+    end
+
+    # Print stats about packages.
+    #
+    # @return [void]
+    def stats
+      packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
+      packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
+      cache_size                    = `du -sh /var/cache/apt/archives/ | cut -f 1`
+
+      puts "#{`lsb_release -ds`}\n"
+
+      puts "Total installed packages:         #{packages_installed}"
+      puts "Explicitly installed packages:    #{packages_installed_explicitly}"
+      puts "Space used by packages in cache:  #{cache_size}"
+    end
+
+    private
+
+    # Separate packages in analysis parts.
+    # 
+    # Return a Hash as bellow :
+    #
+    #   Hash{max, Array<detail>}
+    #
+    #   max['name']           : length of largest name
+    #   max['version']['old'] : length of largest old (for upgrade) or current version
+    #   max['version']['new'] : length of the largest new version (only for upgrade)
+    #   max['size']['before'] : length of the size of the package, before the decimal
+    #   max['size']['after']  : length of the size of the package, after the decimal
+    #   max['size']['unit']   : length of the size's unit
+    #
+    #   detail['name']            : name of the package
+    #   detail['parameter']       : aptitude's information : a, u, p
+    #   detail['version']['old']  : old / current version of the package
+    #   detail['version']['new']  : new version of the package (only for upgrade)
+    #   detail['size']['before']  : size of the package, before the decimal
+    #   detail['size']['after']   : size of the package, after the decimal
+    #   detail['size']['unit']    : size's unit
+    #
+    # @param packages [Array<String>] List of packages
+    #
+    # @return [Hash{String => Hash{String => Fixnum, String, Hash{String => Fixnum, String}}}]
+    #   Largest sizes and details of sections of package line : name, version
+    #   (old / current and new) and size (integer part, decimal part and unit)
+    def analysis_packages(packages)
+    end
+
+    # Display all packages of an operation (install, remove or upgrade).
+    #
+    # @param packages       [Array<String>] List of packages (analysis_packages called automaticaly)
+    # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
+    # @param color          [String]        Color (Linux bash color notation) to use for old / current package version
+    # @param question       [String]        Question to ask for continuing operation after displaying packages list
+    # @param download_size  [String]        Aptitude's text about download sizes
+    #
+    # @return [void]
+    def display_packages(packages, operation, color, question, download_size)
+    end
+
+    # Displaying the line of ONE package.
+    #
+    # @param line       [Hash{String => String, Hash{String => String}}]  Details of package to display
+    # @param max        [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections
+    # @param color      [String]                                          Color (Linux bash color notation) to use for old / current package version
+    #
+    # @return [void]
+    def display_package_line(line, max, color)
+    end
+
+    # Print header for install, remove and upgrade.
+    #
+    # @param largest_name     [Fixnum]  Largest size of package name
+    # @param largest_version  [Fixnum]  Largest size of complete version (old / current AND new)
+    #
+    # @return [void]
+    def print_header(largest_name, largest_version)
+    end
+
+    # Execute the command with superuser rights if needed.
+    #
+    # @param command    [String]  Command to execute
+    # @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes)
+    #
+    # @return [void]
+    def execute_command(command, no_confirm = false)
+    end
+  end
+end
+
+
