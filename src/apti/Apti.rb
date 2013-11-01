@@ -93,10 +93,10 @@ module Apti
 
     # Search packages.
     #
-    # @param package [String] Package(s) to search.
+    # @param package_name [String] Package(s) to search.
     #
     # @return [void]
-    def search(package)
+    def search(package_name)
       require_relative 'Package'
 
       ###############################
@@ -106,69 +106,35 @@ module Apti
       spaces_search = 40
       ###############################
 
-      aptitude_string = `aptitude search --disable-columns #{package}`
+      aptitude_string = `aptitude search --disable-columns #{package_name}`
       terminal_width  = `tput cols`.to_i
 
       # information size (i, p, A, ...) : 6 seems to be good
       package_parameter_length_alignment = 6
 
-      # for each package
-      aptitude_string.each_line do |package_line|
-        package = Package.new
+      packages = get_search_packages(aptitude_string)
 
-        package_str = package_line.split '- '
-
-        # parameter and name, ex: i A aptitude-common
-        package_parameter_and_name = package_str.first
-
-        package.description = ''
-
-        # construct the description (all after the first '-')
-        name_passed = false
-        package_str.each do |str|
-          if not name_passed
-            name_passed = true
-          else
-            package.description.concat "- #{str }"
-          end
-        end
-
-        # informations of the package: i, p, A, ...
-        package_info = package_parameter_and_name.split
-        package_info.pop
-        package.parameter = package_info.join(' ')
-
-        # just the package name (without informations)
-        package.name = package_parameter_and_name.split.last
-
-        # display package informations
+      packages.each do |package|
         print package.parameter
 
-        # print spaces between package_info and package.name
-        (package_parameter_length_alignment - package.parameter.length).times do
-          print ' '
-        end
+        print ''.rjust(package_parameter_length_alignment - package.parameter.length)
 
-        # display package name: if the package is installed, we display it in color
-        if package_info.include? 'i'
+        # Display package name: if the package is installed, we display it in color.
+        if package.parameter.include?('i')
           print "#{color_install}#{package.name}#{color_end}"
         else
           print package.name
         end
 
-        # print spaces between package.name and package_description
-        (spaces_search - package.name.length).times do
-          print ' '
-        end
+        print ''.rjust(spaces_search - package.name.length)
 
         size_of_line = package_parameter_length_alignment + spaces_search + package.description.length
 
-        # if description is too long, we shorten it
+        # If description is too long, we shorten it.
         if size_of_line > terminal_width
           package.description = package.description[0..(terminal_width - package_parameter_length_alignment - spaces_search - 1)]
         end
 
-        # display the description
         puts "#{color_description}#{package.description.chomp}#{color_end}"
       end
     end
@@ -190,7 +156,7 @@ module Apti
 
     private
 
-    # Separate packages in analysis parts.
+    # Separate packages in analysis parts (only for install, remove and upgrade).
     # 
     # Return a Hash as bellow :
     #
@@ -217,6 +183,50 @@ module Apti
     #   Largest sizes and details of sections of package line : name, version
     #   (old / current and new) and size (integer part, decimal part and unit)
     def analysis_packages(packages)
+    end
+
+    # Return an Array of the package(s) searched.
+    #
+    # @param aptitude_string [String] Output of aptitude search's command.
+    #
+    # @return [Array<Apti::Apti::Package>] Array of packages.
+    def get_search_packages(aptitude_string)
+      require_relative 'Package'
+
+      packages = []
+
+      aptitude_string.each_line do |package_line|
+        package = Package.new
+
+        package_str = package_line.split '- '
+
+        # Parameter and name, ex: i A aptitude-common.
+        package_parameter_and_name = package_str.first
+
+        package.description = ''
+
+        # Construct the description (all after the first '-').
+        name_passed = false
+        package_str.each do |str|
+          if not name_passed
+            name_passed = true
+          else
+            package.description.concat "- #{str }"
+          end
+        end
+
+        # The package name (without informations).
+        package.name = package_parameter_and_name.split.last
+
+        # Informations of the package: i, p, A, ...
+        package_info = package_parameter_and_name.split
+        package_info.pop
+        package.parameter = package_info.join(' ')
+
+        packages.push(package)
+      end
+
+      packages
     end
 
     # Display all packages of an operation (install, remove or upgrade).
