@@ -112,9 +112,7 @@ module Apti
       # information size (i, p, A, ...) : 6 seems to be good
       package_parameter_length_alignment = 6
 
-      packages = get_search_packages(aptitude_string)
-
-      packages.each do |package|
+      get_search_packages(aptitude_string).each do |package|
         print package.parameter
 
         print ''.rjust(package_parameter_length_alignment - package.parameter.length)
@@ -152,6 +150,15 @@ module Apti
       puts "Total installed packages:         #{packages_installed}"
       puts "Explicitly installed packages:    #{packages_installed_explicitly}"
       puts "Space used by packages in cache:  #{cache_size}"
+    end
+
+    # Execute the command with superuser rights if needed.
+    #
+    # @param command    [String]  Command to execute
+    # @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes)
+    #
+    # @return [void]
+    def execute_command(command, no_confirm = false)
     end
 
     private
@@ -260,13 +267,5 @@ module Apti
     def print_header(largest_name, largest_version)
     end
 
-    # Execute the command with superuser rights if needed.
-    #
-    # @param command    [String]  Command to execute
-    # @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes)
-    #
-    # @return [void]
-    def execute_command(command, no_confirm = false)
-    end
   end
 end
