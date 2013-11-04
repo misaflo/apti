@@ -1,3 +1,4 @@
+# encoding: utf-8
 #===============================================================================
 #
 # This file is part of Apti.
@@ -23,14 +24,36 @@
 
 module Apti
 
+  require_relative 'config/Config'
+
   class Apti
+    VERSION = "0.4-dev"
+    NEED_SUPERUSER_RIGHTS = [
+      "install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
+      "markauto", "unmarkauto", "build-depends", "build-dep", "forbid-version",
+      "update", "safe-upgrade", "full-upgrade", "keep-all", "forget-new",
+      "clean", "autoclean"
+    ]
+
+    # temp
+    COLOR_INSTALL = "\e[1;32m"
+    COLOR_REMOVE = "\e[1;31m"
+    COLOR_DESCRIPTION = "\e[1;30m"
+    COLOR_END = "\e[0m"
+    SPACES_SEARCH = 40
+    SPACES_BETWEEN_COLUMNS = 2
+    DISPLAY_PACKAGES_SIZE = true
+    SPACES_BETWEEN_UNIT = 1
+    NO_CONFIRM = false
+
     # @!attribute config [r]
     #   @return [Apti::Config::Config] Config.
     #
     # @!attribute VERSION [r]
     #   @return [String] Apti's version.
-
-    VERSION = "0.4-dev"
+    #
+    # @!attribute NEED_SUPERUSER_RIGHTS [r]
+    #   @return [Array<String>] Commands that need superuser rights.
 
     attr_reader :config, :VERSION
 
@@ -38,8 +61,6 @@ module Apti
     #
     # @return [void]
     def initialize
-      require_relative 'config/Config'
-
       #@config = Apti::Config::Config.new
     end
 
@@ -71,24 +92,97 @@ module Apti
     #
     # @return [void]
     def install(package)
+      aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
+      command = "aptitude install #{package}"
+
+      # if problem with dependencies, wrong name given,
+      # or package already installed : display aptitude's message
+      if aptitude_string.include?('1)') || !aptitude_string.include?(':')
+        puts aptitude_string
+        exit 0
+      end
+
+      packages = aptitude_string.split(/ {2}/)
+
+      if display_packages(packages, 'Installing', COLOR_INSTALL, 'Continue the installation', aptitude_string.split(/\n/)[-2])
+        execute_command(command, true)
+      end
     end
 
     # Remove / Purge packages.
     #
-    # @param package  [String]  List of packages to remove / purge
-    # @param purge    [Boolean] True if purging packages else removing
+    # @param package  [String]  List of packages to remove / purge.
+    # @param purge    [Boolean] True if purging packages, else removing.
     #
     # @return [void]
     def remove(package, purge = false)
+      if purge
+        aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
+        command = "aptitude purge #{package}"
+        operation = 'Purging'
+
+      else
+        aptitude_string = `aptitude remove -VZs --assume-yes #{package}`
+        command = "aptitude remove #{package}"
+        operation = 'Removing'
+      end
+
+      # If problem with dependencies, wrong name given,
+      # or trying to remove a virtual package : display aptitude's message.
+      if aptitude_string.include?('1)') || aptitude_string.include?('«')
+        puts aptitude_string
+        exit 0
+
+      # If the package is not installed.
+      elsif !aptitude_string.include?(':')
+        puts 'Package(s) not installed.'
+        exit 0
+      end
+
+      # Remove the "p" parameter on packages to purge.
+      aptitude_string.sub!(/\{p\}/, '')
+
+      # Split packages.
+      packages = aptitude_string.split(/ {2}/)
+
+      if display_packages(packages, operation, COLOR_REMOVE, "#{operation} these packages", aptitude_string.split(/\n/)[-2])
+        execute_command(command, true)
+      end
     end
 
     # Do upgrade (safe-upgrade or full-upgrade).
     #
-    # @param packages     [String]  List of packages to upgrade
-    # @param full_upgrade [Boolean] True if full-upgrade, else safe-upgrade
+    # @param packages     [String]  List of packages to upgrade.
+    # @param full_upgrade [Boolean] True if full-upgrade, else safe-upgrade.
     #
     # @return [void]
     def upgrade(packages, full_upgrade = false)
+      if full_upgrade
+        aptitude_string = `aptitude full-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
+        command = "aptitude full-upgrade #{packages}"
+
+      else
+        aptitude_string = `aptitude safe-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
+        command = "aptitude safe-upgrade #{packages}"
+      end
+     
+      # If problem with dependencies, use aptitude.
+      if aptitude_string.include?('1)')
+        execute_command(command)
+        exit 0
+
+      # If there is no package to upgrade.
+      elsif !aptitude_string.include?(':')
+        puts 'System is up to date.'
+        exit 0
+      end
+
+      # Split packages.
+      packages = aptitude_string.split(/ {2}/)
+
+      if display_packages(packages, 'Upgrading', COLOR_REMOVE, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
+        execute_command(command, true)
+      end
     end
 
     # Search packages.
@@ -99,17 +193,10 @@ module Apti
     def search(package_name)
       require_relative 'Package'
 
-      ###############################
-      color_install = "\e[1;32m"
-      color_description = "\e[1;30m"
-      color_end = "\e[0m"
-      spaces_search = 40
-      ###############################
-
       aptitude_string = `aptitude search --disable-columns #{package_name}`
       terminal_width  = `tput cols`.to_i
 
-      # information size (i, p, A, ...) : 6 seems to be good
+      # Information size (i, p, A, ...) : 6 seems to be good.
       package_parameter_length_alignment = 6
 
       get_search_packages(aptitude_string).each do |package|
@@ -119,21 +206,21 @@ module Apti
 
         # Display package name: if the package is installed, we display it in color.
         if package.parameter.include?('i')
-          print "#{color_install}#{package.name}#{color_end}"
+          print "#{COLOR_INSTALL}#{package.name}#{COLOR_END}"
         else
           print package.name
         end
 
-        print ''.rjust(spaces_search - package.name.length)
+        print ''.rjust(SPACES_SEARCH - package.name.length)
 
-        size_of_line = package_parameter_length_alignment + spaces_search + package.description.length
+        size_of_line = package_parameter_length_alignment + SPACES_SEARCH + package.description.length
 
         # If description is too long, we shorten it.
         if size_of_line > terminal_width
           package.description = package.description[0..(terminal_width - package_parameter_length_alignment - spaces_search - 1)]
         end
 
-        puts "#{color_description}#{package.description.chomp}#{color_end}"
+        puts "#{COLOR_DESCRIPTION}#{package.description.chomp}#{COLOR_END}"
       end
     end
 
@@ -154,11 +241,28 @@ module Apti
 
     # Execute the command with superuser rights if needed.
     #
-    # @param command    [String]  Command to execute
-    # @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes)
+    # @param command    [String]  Command to execute.
+    # @param no_confirm [Boolean] If true execute the command without asking confirmation (--assume-yes).
     #
     # @return [void]
     def execute_command(command, no_confirm = false)
+      if not NEED_SUPERUSER_RIGHTS.include?(command.split[1])
+        system(command)
+
+      elsif `groups`.split.include?('sudo')
+        if no_confirm && NO_CONFIRM
+          system "sudo #{command} --assume-yes"
+        else
+          system "sudo #{command}"
+        end
+
+      else
+        if no_confirm && NO_CONFIRM
+          system "su -c '#{command} --assume-yes'"
+        else
+          system "su -c '#{command}'"
+        end
+      end
     end
 
     private
@@ -167,7 +271,7 @@ module Apti
     # 
     # Return a Hash as bellow :
     #
-    #   Hash{max, Array<detail>}
+    #   Hash{max, Array<Package>}, with max:
     #
     #   max['name']           : length of largest name
     #   max['version']['old'] : length of largest old (for upgrade) or current version
@@ -176,27 +280,82 @@ module Apti
     #   max['size']['after']  : length of the size of the package, after the decimal
     #   max['size']['unit']   : length of the size's unit
     #
-    #   detail['name']            : name of the package
-    #   detail['parameter']       : aptitude's information : a, u, p
-    #   detail['version']['old']  : old / current version of the package
-    #   detail['version']['new']  : new version of the package (only for upgrade)
-    #   detail['size']['before']  : size of the package, before the decimal
-    #   detail['size']['after']   : size of the package, after the decimal
-    #   detail['size']['unit']    : size's unit
+    # @param packages_line [Array<String>] List of packages, as outputted by aptitude.
     #
-    # @param packages [Array<String>] List of packages
-    #
-    # @return [Hash{String => Hash{String => Fixnum, String, Hash{String => Fixnum, String}}}]
-    #   Largest sizes and details of sections of package line : name, version
-    #   (old / current and new) and size (integer part, decimal part and unit)
-    def analysis_packages(packages)
+    # @return [Hash]
+    def analysis_packages(packages_line)
+      require_relative 'Package'
+
+      max                   = {}
+      max['name']           = 0
+      max['version']        = {}
+      max['version']['old'] = 0
+      max['version']['new'] = 0
+      max['size']           = {}
+      max['size']['before'] = 0
+      max['size']['after']  = 0
+      max['size']['unit']   = 0
+
+      packages = []
+
+      packages_line.delete_if { |package| package == '' || package == "\n" }
+
+      packages_line.each do |package_line|
+        # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
+        #                      name                  parameter           version_old           ->  version_new                 size_before                                   size_after          size_unit
+        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,][[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+          package = Package.new
+
+          package.name                = Regexp.last_match[1]
+          package.parameter           = Regexp.last_match[2]
+          package.version_old         = Regexp.last_match[3]
+          package.version_new         = Regexp.last_match[4]
+          package.size_before_decimal = Regexp.last_match[5]
+          package.size_after_decimal  = Regexp.last_match[6]
+          package.size_unit           = Regexp.last_match[7]
+
+          if package.name.length > max['name']
+            max['name'] = package.name.length
+          end
+
+          if package.version_old.length > max['version']['old']
+            max['version']['old'] = package.version_old.length
+          end
+          if !package.version_new.nil? && package.version_new.length > max['version']['new']
+            max['version']['new'] = package.version_new.length
+          end
+
+          if !package.size_before_decimal.nil? && package.size_before_decimal.length > max['size']['before']
+            max['size']['before'] = package.size_before_decimal.length
+          end
+          if !package.size_after_decimal.nil? && package.size_after_decimal.length > max['size']['after']
+            max['size']['after'] = package.size_after_decimal.length
+          end
+          if !package.size_unit.nil? && package.size_unit.length > max['size']['unit']
+            max['size']['unit'] = package.size_unit.length
+          end
+
+          packages.push(package)
+        end
+      end
+
+      max['version']['all'] = max['version']['old'] + max['version']['new']
+      if max['version']['new'] > 0
+        max['version']['all'] += " -> ".length
+      end
+
+      out            = {}
+      out['max']     = max
+      out['packages'] = packages
+
+      out
     end
 
     # Return an Array of the package(s) searched.
     #
     # @param aptitude_string [String] Output of aptitude search's command.
     #
-    # @return [Array<Apti::Apti::Package>] Array of packages.
+    # @return [Array<Apti::Package>] Array of packages.
     def get_search_packages(aptitude_string)
       require_relative 'Package'
 
@@ -238,7 +397,7 @@ module Apti
 
     # Display all packages of an operation (install, remove or upgrade).
     #
-    # @param packages       [Array<String>] List of packages (analysis_packages called automaticaly)
+    # @param packages       [Array<String>] List of packages as outputted by aptitude.
     # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
     # @param color          [String]        Color (Linux bash color notation) to use for old / current package version
     # @param question       [String]        Question to ask for continuing operation after displaying packages list
@@ -246,25 +405,122 @@ module Apti
     #
     # @return [void]
     def display_packages(packages, operation, color, question, download_size)
+      analysis = analysis_packages(packages)
+      max       = analysis['max']
+      packages  = analysis['packages']
+
+      explicit    = []
+      dep_install = []
+      dep_remove  = []
+
+      packages.each do |package|
+        case package.parameter
+        when 'a'
+          dep_install.push(package)
+
+        when 'u'
+          dep_remove.push(package)
+
+        else
+          explicit.push(package)
+        end
+      end
+
+      print_header(max['name'], max['version']['all'])
+
+      puts "\033[1m#{operation}:\033[0m"
+      explicit.each { |package| display_package_line(package, max, color) }
+
+      if !dep_install.empty?
+        puts "\n\033[1mInstalling for dependencies:\033[0m"
+        dep_install.each { |package| display_package_line(package, max, COLOR_INSTALL) }
+      end
+
+      if !dep_remove.empty?
+        puts "\n\033[1mRemoving  unused dependencies:\033[0m"
+        dep_remove.each { |package| display_package_line(package, max, COLOR_REMOVE) }
+      end
+
+      # Size to download and install.
+      puts "\n#{download_size}"
+
+      answer = ''
+      while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
+        print "\n\033[1m#{question}? (Y/n)\033[0m "
+        answer = STDIN.gets.chomp
+        if answer.empty?
+          answer = 'y'
+        end
+      end
+
+      answer.downcase.eql?('y')
     end
 
-    # Displaying the line of ONE package.
+    # Displaying the line of ONE package (for install, remove and upgrade).
     #
-    # @param line       [Hash{String => String, Hash{String => String}}]  Details of package to display
-    # @param max        [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections
-    # @param color      [String]                                          Color (Linux bash color notation) to use for old / current package version
+    # @param package  [Apti::Package]                                   The package to display.
+    # @param max      [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections.
+    # @param color    [String]                                          Color (Linux bash color notation) to use for old / current package version.
     #
     # @return [void]
-    def display_package_line(line, max, color)
+    def display_package_line(package, max, color)
+      print "  #{package.name}"
+      print "#{color}#{''.rjust((max['name'] - package.name.length) + SPACES_BETWEEN_COLUMNS)}#{package.version_old}#{COLOR_END}"
+
+      if !package.version_new.nil?
+        print "#{' -> '.rjust((max['version']['old'] - package.version_old.length) + ' -> '.length)}#{COLOR_INSTALL}#{package.version_new}#{COLOR_END}"
+        rjust_size = max['version']['new'] - package.version_new.length
+      else
+        rjust_size = max['version']['all'] - package.version_old.length
+      end
+
+      if DISPLAY_PACKAGES_SIZE && !package.size_before_decimal.nil?
+        line_size_after_length = (package.size_after_decimal.nil? ? 0 : package.size_after_decimal.length)
+
+        print "#{COLOR_DESCRIPTION}"
+        print "#{package.size_before_decimal.rjust(rjust_size + SPACES_BETWEEN_COLUMNS + max['size']['before'])}"
+        print "#{package.size_after_decimal}"
+        print "#{package.size_unit.rjust((max['size']['after'] - line_size_after_length) + (max['size']['unit']) + SPACES_BETWEEN_UNIT)}"
+        print "#{COLOR_END}"
+      end
+
+      print "\n"
     end
 
     # Print header for install, remove and upgrade.
     #
-    # @param largest_name     [Fixnum]  Largest size of package name
-    # @param largest_version  [Fixnum]  Largest size of complete version (old / current AND new)
+    # @param largest_name     [Fixnum]  Largest size of package name.
+    # @param largest_version  [Fixnum]  Largest size of complete version (old / current AND new).
     #
     # @return [void]
     def print_header(largest_name, largest_version)
+      terminal_width  = `tput cols`.to_i
+
+      # Top line.
+      terminal_width.times do
+        print '='
+      end
+      print "\n"
+
+      # Column's names.
+      header_package = "Package"
+      header_version = "Version"
+      header_size    = "Size"
+
+      print "  #{header_package}"
+      print "#{''.rjust(largest_name - header_package.length + SPACES_BETWEEN_COLUMNS)}"
+      print "#{header_version}"
+      if DISPLAY_PACKAGES_SIZE
+        print "#{''.rjust(largest_version - header_version.length + SPACES_BETWEEN_COLUMNS + 1)}"
+        print "#{header_size}"
+      end
+      print "\n"
+
+      # Bottom line.
+      terminal_width.times do
+        print '='
+      end
+      print "\n"
     end
 
   end

@@ -53,7 +53,7 @@ else
     help
 
   else
-    apti.execute_command "aptitude #{ARGV[1]} #{packages}"
+    apti.execute_command "aptitude #{ARGV[0]} #{packages}"
   end
 
 end
