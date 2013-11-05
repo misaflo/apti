@@ -58,9 +58,9 @@ module Apti
 
         if not File.exists? path
           create_default_file(file)
+        else
+          read_from(file)
         end
-
-        read_from(file)
       end
 
       # Read a configuration file (it must exists).
@@ -131,7 +131,7 @@ module Apti
       # Get correct value of boolean from YAML configuration (cf. read_from).
       #
       # @param  bool            [Boolean]   The value to "read".
-      # @param  default_value   [Boolean]   Default value to use if @a bool not valid.
+      # @param  default_value   [Boolean]   Default value to use if @a bool is not valid.
       #
       # @return [Boolean]   The correct value.
       def read_boolean(bool, default_value)

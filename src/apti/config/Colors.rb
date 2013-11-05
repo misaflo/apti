@@ -25,8 +25,20 @@ module Apti
 
   module Config
 
-    # Shell colors code.
+    # Colors to use in apti.
     class Colors
+      #
+      # @!attribute COLOR_END [r]
+      #   @return [Fixnum] Shell color id for stopping color (e.g. black)
+      #
+      # @!attribute COLOR_GREY [r]
+      #   @return [Fixnum] Shell color id for grey.
+      #
+      # @!attribute COLOR_RED [r]
+      #   @return [Fixnum] Shell color id for red.
+      #
+      # @!attribute COLOR_GREEN [r]
+      #   @return [Fixnum] Shell color id for green.
       COLOR_END   = 0
       COLOR_GREY  = 30
       COLOR_RED   = 31
@@ -43,12 +55,16 @@ module Apti
       #   @return [Fixnum] Color of description.
       attr_reader :install, :remove, :description
 
+      # Initialize colors to default
       def initialize
         @install     = COLOR_GREEN
         @remove      = COLOR_RED
         @description = COLOR_GREY
       end
 
+      # Read colors from a YAML configuration (itself from a configuration file)
+      #
+      # @param  colors  [Hash{String => String, Fixnum}]   YAML colors part.
       def read_from(colors)
         if colors.nil?
           return
@@ -60,6 +76,14 @@ module Apti
       end
 
       private
+      # Get correct value of a "color" from YAML configuration (cf. read_from).
+      #
+      # @note If @a color is a String, Colors will try to convert it to a shell color using "COLOR_*" Colors constants.
+      #
+      # @param  color           [String, Fixnum]      The "color" to read.
+      # @param  default_value   [Fixnum]              The default value to use if @a color is not valid.
+      # 
+      # @return [Fixnum]    The correct shell color id.
       def read_color(color, default_value)
         if color.nil?
           return default_value
