@@ -25,6 +25,7 @@ module Apti
 
   module Config
 
+    # Spaces between elements to use in apti
     class Spaces
       #
       # @!attribute columns [r]
@@ -37,12 +38,16 @@ module Apti
       #   @return [Fixnum] Number of spaces with \"search\" between package name and his description.
       attr_reader :columns, :unit, :search
 
+      # Initialize spaces to default.
       def initialize
         @columns =  2
         @unit    =  1
         @search  = 40
       end
 
+      # Read spaces from a YAML configuration (itself from a configuration file)
+      #
+      # @param  spaces  [Hash{String => Fixnum}]   YAML spaces part.
       def read_from(spaces)
         if spaces.nil?
           return
@@ -54,6 +59,12 @@ module Apti
       end
 
       private
+      # Get correct value of space from YAML configuration (cf. read_from).
+      #
+      # @param  space           [Fixnum]      The "space" to read.
+      # @param  default_value   [Fixnum]      The default value to use if *space* is not valid.
+      # 
+      # @return [Fixnum]    The correct space.
       def read_space(space, default_value)
         if space.nil?
           return default_value

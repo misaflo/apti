@@ -78,10 +78,10 @@ module Apti
       private
       # Get correct value of a "color" from YAML configuration (cf. read_from).
       #
-      # @note If @a color is a String, Colors will try to convert it to a shell color using "COLOR_*" Colors constants.
+      # @note If *color* is a String, Colors will try to convert it to a shell color using "COLOR_*" Colors constants.
       #
       # @param  color           [String, Fixnum]      The "color" to read.
-      # @param  default_value   [Fixnum]              The default value to use if @a color is not valid.
+      # @param  default_value   [Fixnum]              The default value to use if *color* is not valid.
       # 
       # @return [Fixnum]    The correct shell color id.
       def read_color(color, default_value)
