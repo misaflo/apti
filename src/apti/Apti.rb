@@ -437,7 +437,7 @@ module Apti
       end
 
       if !dep_remove.empty?
-        puts "\n\033[1mRemoving  unused dependencies:\033[0m"
+        puts "\n\033[1mRemoving unused dependencies:\033[0m"
         dep_remove.each { |package| display_package_line(package, max, COLOR_REMOVE) }
       end
 
