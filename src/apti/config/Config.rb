@@ -42,7 +42,10 @@ module Apti
       #   @return [String] Ask operation confirmation or not ?
       attr_reader :colors, :display_size, :spaces, :no_confirm
 
-      def initialize(file)
+      # Initialize configuration : read configuration file or, if not exists, create it with default configuration.
+      #
+      # @param  file    [String]    Configuration filename (without path).
+      def initialize(file = 'aptirc.yml')
         require_relative 'Colors'
         require_relative 'Spaces'
 
@@ -56,8 +59,13 @@ module Apti
         if not File.exists? path
           create_default_file(file)
         end
+
+        read_from(file)
       end
 
+      # Read a configuration file (it must exists).
+      #
+      # @param  file    [String]    Filename (without path) to read.
       def read_from(file)
         require 'yaml'
 
@@ -71,10 +79,16 @@ module Apti
       end
 
       private
+      # Get path to Apti configuration directory.
+      #
+      # @return [String]  Path of Apti configuration directory.
       def get_dir
         return get_env_dir + '/apti/'
       end
 
+      # Get path to system configuration directory.
+      #
+      # @return [String]  Path of sytem configuration directory.
       def get_env_dir
         if ENV["XDG_CONFIG_HOME"].nil?
           return "#{ENV["HOME"]}/.config"
@@ -83,6 +97,9 @@ module Apti
         end
       end
 
+      # Create a configuration file with default values.
+      #
+      # @param  filename    [String]    Filename (without path) of configuration file to create.
       def create_default_file(filename)
         require 'yaml'
 
@@ -111,6 +128,12 @@ module Apti
         end
       end
 
+      # Get correct value of boolean from YAML configuration (cf. read_from).
+      #
+      # @param  bool            [Boolean]   The value to "read".
+      # @param  default_value   [Boolean]   Default value to use if @a bool not valid.
+      #
+      # @return [Boolean]   The correct value.
       def read_boolean(bool, default_value)
         if bool.nil?
           return default_value
