@@ -1,3 +1,4 @@
+# encoding: utf-8
 #===============================================================================
 #
 # This file is part of Apti.
@@ -29,7 +30,7 @@ module Apti
     class Colors
       #
       # @!attribute COLOR_END [r]
-      #   @return [Fixnum] Shell color id for stopping color (e.g. black)
+      #   @return [Fixnum] Shell color id for stopping color (e.g. black).
       #
       # @!attribute COLOR_GREY [r]
       #   @return [Fixnum] Shell color id for grey.
@@ -55,14 +56,14 @@ module Apti
       #   @return [Fixnum] Color of description.
       attr_reader :install, :remove, :description
 
-      # Initialize colors to default
+      # Initialize colors to default.
       def initialize
         @install     = COLOR_GREEN
         @remove      = COLOR_RED
         @description = COLOR_GREY
       end
 
-      # Read colors from a YAML configuration (itself from a configuration file)
+      # Read colors from a YAML configuration (itself from a configuration file).
       #
       # @param  colors  [Hash{String => String, Fixnum}]   YAML colors part.
       def read_from(colors)
@@ -76,6 +77,7 @@ module Apti
       end
 
       private
+
       # Get correct value of a "color" from YAML configuration (cf. read_from).
       #
       # @note If *color* is a String, Colors will try to convert it to a shell color using "COLOR_*" Colors constants.
@@ -83,23 +85,24 @@ module Apti
       # @param  color           [String, Fixnum]      The "color" to read.
       # @param  default_value   [Fixnum]              The default value to use if *color* is not valid.
       # 
-      # @return [Fixnum]    The correct shell color id.
+      # @return [Fixnum] The correct shell color id.
       def read_color(color, default_value)
         if color.nil?
           return default_value
         end
 
-        if !(color.to_s =~ /^[[:digit:]]{1,3}$/).nil?    # Si un nombre (forcément compris entre 0 et 255 inclus)
+        # If color is a number (always between 0 and 255 inclusive).
+        if !(color.to_s =~ /^[[:digit:]]{1,3}$/).nil?
           return color
         end
 
-        color_constant = 'COLOR_' + color.upcase
+        color_constant = "#{COLOR_}#{color.upcase}"
         if Colors.const_defined?(color_constant, false)
           return Colors.const_get(color_constant, false)
         end
 
-        print "Configuration : Unable to get color from \"#{color}\"\n"
-        return default_value
+        print "Configuration: Unable to get color from \"#{color}\"\n"
+        default_value
       end
     end
 
