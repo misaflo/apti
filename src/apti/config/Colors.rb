@@ -28,6 +28,7 @@ module Apti
 
     # Colors to use in apti.
     class Colors
+      #
       # @!attribute COLOR_END [r]
       #   @return [Fixnum] Shell color id for stopping color (e.g. black).
       #
@@ -44,6 +45,7 @@ module Apti
       COLOR_RED   = 31
       COLOR_GREEN = 32
 
+      #
       # @!attribute install [r]
       #   @return [Fixnum] Color of install.
       #
