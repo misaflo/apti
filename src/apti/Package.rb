@@ -52,6 +52,19 @@ module Apti
     attr_accessor :name, :parameter, :version_old, :version_new,
       :size_before_decimal, :size_after_decimal, :size_unit,
       :description
+
+    # Return all the versions of the package as follow : version_old -> version_new (if version_new not nil).
+    #
+    # @return [String] Version(s) of the package.
+    def version_all
+      version_all = version_old
+
+      if !version_new.nil?
+        version_all += " -> #{version_new}"
+      end
+
+      version_all
+    end
   end
 
 end

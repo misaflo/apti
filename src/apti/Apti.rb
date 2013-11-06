@@ -269,32 +269,23 @@ module Apti
 
     # Separate packages in analysis parts (only for install, remove and upgrade).
     # 
-    # Return a Hash as bellow :
+    # Return a Hash like +Hash{max, packages}+ with:
     #
-    #   Hash{max, Array<Package>}, with max:
-    #
-    #   max['name']           : length of largest name
-    #   max['version']['old'] : length of largest old (for upgrade) or current version
-    #   max['version']['new'] : length of the largest new version (only for upgrade)
-    #   max['size']['before'] : length of the size of the package, before the decimal
-    #   max['size']['after']  : length of the size of the package, after the decimal
-    #   max['size']['unit']   : length of the size's unit
-    #
+    # * max: Apti::Package,             Fake package with max lengths of all attributs.
+    # * packages: Array<Apti::Package>, Array of packages.
     # @param packages_line [Array<String>] List of packages, as outputted by aptitude.
     #
     # @return [Hash]
     def analysis_packages(packages_line)
       require_relative 'Package'
 
-      max                   = {}
-      max['name']           = 0
-      max['version']        = {}
-      max['version']['old'] = 0
-      max['version']['new'] = 0
-      max['size']           = {}
-      max['size']['before'] = 0
-      max['size']['after']  = 0
-      max['size']['unit']   = 0
+      max = Package.new
+      max.name                = ''
+      max.version_old         = ''
+      max.version_new         = ''
+      max.size_before_decimal = ''
+      max.size_after_decimal  = ''
+      max.size_unit           = ''
 
       packages = []
 
@@ -314,34 +305,29 @@ module Apti
           package.size_after_decimal  = Regexp.last_match[6]
           package.size_unit           = Regexp.last_match[7]
 
-          if package.name.length > max['name']
-            max['name'] = package.name.length
+          if package.name.length > max.name.length
+            max.name = package.name
           end
 
-          if package.version_old.length > max['version']['old']
-            max['version']['old'] = package.version_old.length
+          if package.version_old.length > max.version_old.length
+            max.version_old = package.version_old
           end
-          if !package.version_new.nil? && package.version_new.length > max['version']['new']
-            max['version']['new'] = package.version_new.length
+          if !package.version_new.nil? && package.version_new.length > max.version_new.length
+            max.version_new = package.version_new
           end
 
-          if !package.size_before_decimal.nil? && package.size_before_decimal.length > max['size']['before']
-            max['size']['before'] = package.size_before_decimal.length
+          if !package.size_before_decimal.nil? && package.size_before_decimal.length > max.size_before_decimal.length
+            max.size_before_decimal = package.size_before_decimal
           end
-          if !package.size_after_decimal.nil? && package.size_after_decimal.length > max['size']['after']
-            max['size']['after'] = package.size_after_decimal.length
+          if !package.size_after_decimal.nil? && package.size_after_decimal.length > max.size_after_decimal.length
+            max.size_after_decimal = package.size_after_decimal
           end
-          if !package.size_unit.nil? && package.size_unit.length > max['size']['unit']
-            max['size']['unit'] = package.size_unit.length
+          if !package.size_unit.nil? && package.size_unit.length > max.size_unit.length
+            max.size_unit = package.size_unit
           end
 
           packages.push(package)
         end
-      end
-
-      max['version']['all'] = max['version']['old'] + max['version']['new']
-      if max['version']['new'] > 0
-        max['version']['all'] += " -> ".length
       end
 
       out            = {}
@@ -399,9 +385,9 @@ module Apti
     #
     # @param packages       [Array<String>] List of packages as outputted by aptitude.
     # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
-    # @param color          [String]        Color (Linux bash color notation) to use for old / current package version
-    # @param question       [String]        Question to ask for continuing operation after displaying packages list
-    # @param download_size  [String]        Aptitude's text about download sizes
+    # @param color          [String]        Color (Linux bash color notation) to use for old / current package version.
+    # @param question       [String]        Question to ask for continuing operation after displaying packages list.
+    # @param download_size  [String]        Aptitude's text about download sizes.
     #
     # @return [void]
     def display_packages(packages, operation, color, question, download_size)
@@ -426,7 +412,7 @@ module Apti
         end
       end
 
-      print_header(max['name'], max['version']['all'])
+      print_header(max.name.length, max.version_all.length)
 
       puts "\033[1m#{operation}:\033[0m"
       explicit.each { |package| display_package_line(package, max, color) }
@@ -458,29 +444,29 @@ module Apti
 
     # Displaying the line of ONE package (for install, remove and upgrade).
     #
-    # @param package  [Apti::Package]                                   The package to display.
-    # @param max      [Hash{String => Fixnum, Hash{String => Fixnum}}]  Largest sizes of sections.
-    # @param color    [String]                                          Color (Linux bash color notation) to use for old / current package version.
+    # @param package  [Apti::Package] The package to display.
+    # @param max      [Apti::Package] Fake package with max lengths of all attributs.
+    # @param color    [String]        Color (Linux bash color notation) to use for old / current package version.
     #
     # @return [void]
     def display_package_line(package, max, color)
       print "  #{package.name}"
-      print "#{color}#{''.rjust((max['name'] - package.name.length) + SPACES_BETWEEN_COLUMNS)}#{package.version_old}#{COLOR_END}"
+      print "#{color}#{''.rjust((max.name.length - package.name.length) + SPACES_BETWEEN_COLUMNS)}#{package.version_old}#{COLOR_END}"
 
       if !package.version_new.nil?
-        print "#{' -> '.rjust((max['version']['old'] - package.version_old.length) + ' -> '.length)}#{COLOR_INSTALL}#{package.version_new}#{COLOR_END}"
-        rjust_size = max['version']['new'] - package.version_new.length
+        print "#{' -> '.rjust((max.version_old.length - package.version_old.length) + ' -> '.length)}#{COLOR_INSTALL}#{package.version_new}#{COLOR_END}"
+        rjust_size = max.version_new.length - package.version_new.length
       else
-        rjust_size = max['version']['all'] - package.version_old.length
+        rjust_size = max.version_all.length - package.version_old.length
       end
 
       if DISPLAY_PACKAGES_SIZE && !package.size_before_decimal.nil?
         line_size_after_length = (package.size_after_decimal.nil? ? 0 : package.size_after_decimal.length)
 
         print "#{COLOR_DESCRIPTION}"
-        print "#{package.size_before_decimal.rjust(rjust_size + SPACES_BETWEEN_COLUMNS + max['size']['before'])}"
+        print "#{package.size_before_decimal.rjust(rjust_size + SPACES_BETWEEN_COLUMNS + max.size_before_decimal.length)}"
         print "#{package.size_after_decimal}"
-        print "#{package.size_unit.rjust((max['size']['after'] - line_size_after_length) + (max['size']['unit']) + SPACES_BETWEEN_UNIT)}"
+        print "#{package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + SPACES_BETWEEN_UNIT)}"
         print "#{COLOR_END}"
       end
 
