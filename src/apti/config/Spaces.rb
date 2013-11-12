@@ -58,6 +58,17 @@ module Apti
         @search  = read_space(spaces['search'],  @search)
       end
 
+      # Write spaces to a YAML configuration (itself to a configuration file)
+      #
+      # @return YAML spaces part.
+      def write_to
+        return {
+          'columns' =>  @columns,
+          'unit'    =>  @unit,
+          'search'  =>  @search
+        }
+      end
+
       private
       # Get correct value of space from YAML configuration (cf. read_from).
       #

@@ -154,6 +154,17 @@ module Apti
         @effect     = read_property('effect',     color['effect'],     @effect)
       end
 
+      # Write the color to a YAML configuration (itself to a configuration file)
+      #
+      # @return YAML color part.
+      def write_to
+        return {
+          'text'        =>  write_property('text',        @text),
+          'background'  =>  write_property('background',  @background),
+          'effect'      =>  write_property('effect',      @effect)
+        }
+      end
+
       # Get Shell notation for the color.
       #
       # @return [String] Shell notation.
@@ -166,7 +177,6 @@ module Apti
       end
 
       private
-
       # Get correct value of a "color" from YAML configuration (cf. read_from).
       #
       # @note If *property* is a String, Color will try to convert it to a shell id using "COLOR_*", "BACKGROUND_*" or "EFFECT_*" constants (according to *type* parameter).
@@ -193,6 +203,32 @@ module Apti
 
         print "Configuration: Unable to get property #{type} from \"#{property}\"\n"
         default_value
+      end
+      # Get correct value of a "color" to YAML configuration (cf. write_to).
+      #
+      # @note Color will try to convert *property* to a string using "COLOR_*", "BACKGROUND_*" or "EFFECT_*" constants (according to *type* parameter).
+      #
+      # @param  type      [String]  The "type" of property to read. Must only be "color", "background" or "effect".
+      # @param  property  [Fixnum]  The value to read.
+      # 
+      # @return [String,Fixnum] The string according to property value, or his direct value
+      def write_property(type, property)
+        constants_array = Color.constants;
+        constants = {}
+
+        constant_start = "#{type.upcase}_"
+        constants_array.each do |constant_name|
+          if constant_name.start_with? constant_start
+            constants[constant_name.slice(constant_start.length)] = Color.const_get(constant_name)
+          end
+        end
+
+        constant_name = constants.key(property)
+        if constant_name.nil?
+          return property
+        else
+          return constant_name
+        end
       end
     end
 

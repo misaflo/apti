@@ -61,6 +61,17 @@ module Apti
         @remove.read_from(colors['remove'])
         @description.read_from(colors['description'])
       end
+
+      # Write colors to a YAML configuration (itself to a configuration file)
+      #
+      # @return YAML colors part.
+      def write_to
+        return {
+          'install'     =>  @install.write_to(),
+          'remove'      =>  @remove.write_to(),
+          'description' =>  @description.write_to()
+        }
+      end
     end
 
   end

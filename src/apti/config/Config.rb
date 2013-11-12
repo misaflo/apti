@@ -57,7 +57,7 @@ module Apti
         path = get_dir + file
 
         if not File.exists? path
-          create_default_file(file)
+          write_to(file)
         else
           read_from(file)
         end
@@ -78,44 +78,17 @@ module Apti
         @no_confirm   = read_boolean(config['no_confirm'],   @no_confirm)
       end
 
-      private
-      # Get path to Apti configuration directory.
-      #
-      # @return [String]  Path of Apti configuration directory.
-      def get_dir
-        return get_env_dir + '/apti/'
-      end
-
-      # Get path to system configuration directory.
-      #
-      # @return [String]  Path of sytem configuration directory.
-      def get_env_dir
-        if ENV["XDG_CONFIG_HOME"].nil?
-          return "#{ENV["HOME"]}/.config"
-        else
-          return ENV["XDG_CONFIG_HOME"]
-        end
-      end
-
-      # Create a configuration file with default values.
+      # Write to a configuration file.
       #
       # @param  filename    [String]    Filename (without path) of configuration file to create.
       def create_default_file(filename)
         require 'yaml'
 
         yaml = {
-          'colors'        =>  {
-            'install'       =>  'green',
-            'remove'        =>  'red',
-            'description'   =>  'grey'
-          },
-          'display_size'  =>  true,
-          'spaces'        =>  {
-            'columns'       =>   2,
-            'unit'          =>   1,
-            'search'        =>  40
-          },
-          'no_confirm'    =>  false
+          'colors'        =>  @colors.write_to(),
+          'display_size'  =>  @display_size,
+          'spaces'        =>  @spaces.write_to(),
+          'no_confirm'    =>  @no_confirm
         }.to_yaml
 
         if not File.directory? get_dir
@@ -125,6 +98,24 @@ module Apti
 
         File.open("#{get_dir}#{filename}", 'w') do |file|
           file.write(yaml)
+        end
+      end
+
+      private
+      # Get path to Apti configuration directory.
+      #
+      # @return [String]  Path of Apti configuration directory.
+      def get_dir
+        return get_env_dir + '/apti/'
+      end
+      # Get path to system configuration directory.
+      #
+      # @return [String]  Path of sytem configuration directory.
+      def get_env_dir
+        if ENV["XDG_CONFIG_HOME"].nil?
+          return "#{ENV["HOME"]}/.config"
+        else
+          return ENV["XDG_CONFIG_HOME"]
         end
       end
 
