@@ -50,6 +50,8 @@ module Apti
       # Read colors from a YAML configuration (itself from a configuration file).
       #
       # @param  colors  [Hash{String => String, Fixnum}]   YAML colors part.
+      #
+      # TODO Color can be get with a simple string corresponding to text color.
       def read_from(colors)
         if colors.nil?
           return
