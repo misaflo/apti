@@ -10,8 +10,8 @@ The improved commands are: `install`, `remove`, `purge`, `safe-upgrade`, `full-u
 
 Dependencies:
 
-  * aptitude (of course)
-  * ruby >= 1.9 (may work with ruby1.8, but not tested)
+* aptitude (of course)
+* ruby >= 1.9 (may work with ruby1.8, but not tested)
 
 Put apti in /usr/local/, and create a link to main.rb: `ln -s /usr/local/apti/main.rb /usr/local/bin/apti`
 
