@@ -28,22 +28,6 @@ module Apti
 
     # Colors to use in apti.
     class Colors
-      #
-      # @!attribute COLOR_END [r]
-      #   @return [Fixnum] Shell color id for stopping color (e.g. black).
-      #
-      # @!attribute COLOR_GREY [r]
-      #   @return [Fixnum] Shell color id for grey.
-      #
-      # @!attribute COLOR_RED [r]
-      #   @return [Fixnum] Shell color id for red.
-      #
-      # @!attribute COLOR_GREEN [r]
-      #   @return [Fixnum] Shell color id for green.
-      COLOR_END   = 0
-      COLOR_GREY  = 30
-      COLOR_RED   = 31
-      COLOR_GREEN = 32
 
       #
       # @!attribute install [r]
@@ -58,9 +42,9 @@ module Apti
 
       # Initialize colors to default.
       def initialize
-        @install     = COLOR_GREEN
-        @remove      = COLOR_RED
-        @description = COLOR_GREY
+        @install      = Apti::Config::Color.new(Apti::Config::Color::COLOR_GREEN, Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
+        @remove       = Apti::Config::Color.new(Apti::Config::Color::COLOR_RED,   Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
+        @description  = Apti::Config::Color.new(Apti::Config::Color::COLOR_BLACK, Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
       end
 
       # Read colors from a YAML configuration (itself from a configuration file).
@@ -71,38 +55,9 @@ module Apti
           return
         end
 
-        @install     = read_color(colors['install'],     @install)
-        @remove      = read_color(colors['remove'],      @remove)
-        @description = read_color(colors['description'], @description)
-      end
-
-      private
-
-      # Get correct value of a "color" from YAML configuration (cf. read_from).
-      #
-      # @note If *color* is a String, Colors will try to convert it to a shell color using "COLOR_*" Colors constants.
-      #
-      # @param  color           [String, Fixnum]      The "color" to read.
-      # @param  default_value   [Fixnum]              The default value to use if *color* is not valid.
-      # 
-      # @return [Fixnum] The correct shell color id.
-      def read_color(color, default_value)
-        if color.nil?
-          return default_value
-        end
-
-        # If color is a number (always between 0 and 255 inclusive).
-        if !(color.to_s =~ /^[[:digit:]]{1,3}$/).nil?
-          return color
-        end
-
-        color_constant = "#{COLOR_}#{color.upcase}"
-        if Colors.const_defined?(color_constant, false)
-          return Colors.const_get(color_constant, false)
-        end
-
-        print "Configuration: Unable to get color from \"#{color}\"\n"
-        default_value
+        @install.read_from(colors['install'])
+        @remove.read_from(colors['remove'])
+        @description.read_from(colors['description'])
       end
     end
 
