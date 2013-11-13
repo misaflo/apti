@@ -71,11 +71,11 @@ module Apti
 
         config = YAML::load_file("#{get_dir}#{file}")
 
-        @colors.read_from(config['colors'])
-        @spaces.read_from(config['spaces'])
+        @colors.read_from(config[:colors])
+        @spaces.read_from(config[:spaces])
 
-        @display_size = read_boolean(config['display_size'], @display_size)
-        @no_confirm   = read_boolean(config['no_confirm'],   @no_confirm)
+        @display_size = read_boolean(config[:display_size], @display_size)
+        @no_confirm   = read_boolean(config[:no_confirm],   @no_confirm)
       end
 
       # Write to a configuration file.
@@ -85,10 +85,10 @@ module Apti
         require 'yaml'
 
         yaml = {
-          'colors'        =>  @colors.write_to(),
-          'display_size'  =>  @display_size,
-          'spaces'        =>  @spaces.write_to(),
-          'no_confirm'    =>  @no_confirm
+          :colors       =>  @colors.write_to(),
+          :display_size =>  @display_size,
+          :spaces       =>  @spaces.write_to(),
+          :no_confirm   =>  @no_confirm
         }.to_yaml
 
         if not File.directory? get_dir

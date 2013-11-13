@@ -150,11 +150,11 @@ module Apti
         end
 
         if color.class == String || color.class == Integer
-          @text = read_property('text', color, @text)
+          @text = read_property(:text, color, @text)
         else
-          @text       = read_property('text',       color['text'],       @text)
-          @background = read_property('background', color['background'], @background)
-          @effect     = read_property('effect',     color['effect'],     @effect)
+          @text       = read_property(:text,        color[:text],       @text)
+          @background = read_property(:background,  color[:background], @background)
+          @effect     = read_property(:effect,      color[:effect],     @effect)
         end
       end
 
@@ -163,9 +163,9 @@ module Apti
       # @return YAML color part.
       def write_to
         return {
-          'text'        =>  write_property('text',        @text),
-          'background'  =>  write_property('background',  @background),
-          'effect'      =>  write_property('effect',      @effect)
+          :text       =>  write_property(:text,       @text),
+          :background =>  write_property(:background, @background),
+          :effect     =>  write_property(:effect,     @effect)
         }
       end
 
