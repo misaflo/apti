@@ -1,7 +1,5 @@
 # bugs
 
-* Apti::Config::Colors: a color can be initialized with a simple string : the text color.
-
 # next versions
 
 ## next

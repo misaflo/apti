@@ -143,15 +143,19 @@ module Apti
 
       # Read a color from a YAML configuration (itself from a configuration file).
       #
-      # @param  color  [Hash{String => String, Fixnum}]   YAML color part.
+      # @param  color  [String, Fixnum, Hash{String => String, Fixnum}]   YAML color part.
       def read_from (color)
         if color.nil?
           return
         end
 
-        @text       = read_property('text',       color['text'],       @text)
-        @background = read_property('background', color['background'], @background)
-        @effect     = read_property('effect',     color['effect'],     @effect)
+        if color.class == String || color.class == Integer
+          @text = read_property('text', color, @text)
+        else
+          @text       = read_property('text',       color['text'],       @text)
+          @background = read_property('background', color['background'], @background)
+          @effect     = read_property('effect',     color['effect'],     @effect)
+        end
       end
 
       # Write the color to a YAML configuration (itself to a configuration file)
@@ -198,7 +202,7 @@ module Apti
         end
 
         # If property is a number (always between 0 and 255 inclusive).
-        if !(property.to_s =~ /^[[:digit:]]{1,3}$/).nil?
+        if property.class == Integer || !(property.to_s =~ /^[[:digit:]]{1,3}$/).nil?
           return color
         end
 
