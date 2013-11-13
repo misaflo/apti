@@ -89,14 +89,14 @@ module Apti
       #
       # @!attribute BACKGROUND_WHITE [r]
       #   @return [Fixnum] Shell background color id for WHITE.
-      BACKGROUND_BLACK   = 30
-      BACKGROUND_RED     = 31
-      BACKGROUND_GREEN   = 32
-      BACKGROUND_ORANGE  = 33
-      BACKGROUND_BLUE    = 34
-      BACKGROUND_MAGENTA = 35
-      BACKGROUND_CYAN    = 36
-      BACKGROUND_WHITE   = 37
+      BACKGROUND_BLACK   = 40
+      BACKGROUND_RED     = 41
+      BACKGROUND_GREEN   = 42
+      BACKGROUND_ORANGE  = 43
+      BACKGROUND_BLUE    = 44
+      BACKGROUND_MAGENTA = 45
+      BACKGROUND_CYAN    = 46
+      BACKGROUND_WHITE   = 47
 
       #
       # @!attribute EFFECT_NORMAL [r]
@@ -135,7 +135,7 @@ module Apti
       # @param  text        [Fixnum]   Shell text color id.
       # @param  background  [Fixnum]   Shell background color id.
       # @param  effect      [Fixnum]   Shell effect id.
-      def initialize(text = TEXT_BLACK, background = BACKGROUND_BLACK, effect = EFFECT_NORMAL)
+      def initialize(text = TEXT_BLACK, background = nil, effect = EFFECT_NORMAL)
         @text = text
         @background = background
         @effect = effect
@@ -173,7 +173,13 @@ module Apti
           return "\e[#{@text}m";
         end
 
-        return "\e[#{@effect};#{@text};#{@background}m";
+        color = "\e[#{@effect};#{@text}"
+
+        if !@background.nil?
+          color = color + ";#{@background}"
+        end
+
+        return color + "m"
       end
 
       private
