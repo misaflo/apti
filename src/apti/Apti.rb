@@ -97,6 +97,9 @@ module Apti
     # @return [void]
     def version
       puts "apti #{VERSION}"
+      puts I18n.t(:using)
+      puts "  aptitude #{`aptitude --version | head -n 1 | cut -d ' ' -f 2`}"
+      puts "  ruby #{`ruby --version | cut -d ' ' -f 2`}"
     end
 
     # Install packages.

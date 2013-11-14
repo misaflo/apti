@@ -3,6 +3,7 @@ fr:
   package_not_installed: "Paquet(s) non installé(s)."
   installing_for_dependencies: "Installation pour dépendances :"
   removing_unused_dependencies: "Suppression des dépendances non utilisées :"
+  using: "Utilisant :"
 
   operation:
     installing: "Installation :"
@@ -17,3 +18,6 @@ fr:
     total_installed: "Nombre de paquets installés : %{number}"
     explicitly_installed: "Nombre de paquets installés explicitement : %{number}"
     space_used_in_cache: "Espace utilisé par les paquets dans le cache : %{size}"
+
+  warning:
+    upgrade: "Avertissement: upgrade est déprécié, utilisez safe-upgrade."

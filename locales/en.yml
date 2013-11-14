@@ -3,6 +3,7 @@ en:
   package_not_installed: "Package(s) not installed."
   installing_for_dependencies: "Installing for dependencies:"
   removing_unused_dependencies: "Removing unused dependencies:"
+  using: "Using:"
 
   operation:
     installing: "Installing:"
@@ -17,3 +18,6 @@ en:
     total_installed: "Total installed packages: %{number}"
     explicitly_installed : "Explicitly installed packages: %{number}"
     space_used_in_cache: "Space used by packages in cache: %{size}"
+
+  warning:
+    upgrade: "Warning: upgrade is deprecated, use safe-upgrade."
