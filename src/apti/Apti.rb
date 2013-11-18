@@ -199,8 +199,10 @@ module Apti
 
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
+      operation = I18n.t(:'operation.upgrading')
+      question = I18n.t(:'operation.question.upgrade')
 
-      if display_packages(packages, 'Upgrading', COLOR_REMOVE, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, COLOR_REMOVE, question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end

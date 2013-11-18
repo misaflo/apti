@@ -9,10 +9,12 @@ fr:
     installing: "Installation :"
     removing: "Suppression :"
     purging: "Purge :"
+    upgrading: "Mise à niveau :"
     question:
       installation: "Continuer l'installation ?"
       remove: "Supprimer ces paquets ?"
       purge: "Purger ces paquets ?"
+      upgrade: "Continuer la mise à niveau ?"
 
   stat:
     total_installed: "Nombre de paquets installés : %{number}"

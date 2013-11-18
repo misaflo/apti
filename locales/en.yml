@@ -9,10 +9,12 @@ en:
     installing: "Installing:"
     removing: "Removing:"
     purging: "Purging:"
+    upgrading: "Upgrading:"
     question:
       installation: "Continue the installation?"
       remove: "Remove these package?"
       purge: "Purge these packages?"
+      upgrade: "Continue the upgrade?"
 
   stat:
     total_installed: "Total installed packages: %{number}"

@@ -2,6 +2,8 @@
 
 # next versions
 
+* In upgrade, display package to upgrade first.
+
 ## next
 
 * object oriented code
