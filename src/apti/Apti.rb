@@ -414,16 +414,16 @@ module Apti
 
       print_header(max.name.length, max.version_all.length)
 
-      puts "#{@config.colors.groups.to_shell_color}#{operation}:"
+      puts "#{@config.colors.groups.to_shell_color}#{operation}:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
       explicit.each { |package| display_package_line(package, max, color) }
 
       if !dep_install.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}Installing for dependencies:"
+        puts "\n#{@config.colors.groups.to_shell_color}Installing for dependencies:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
       end
 
       if !dep_remove.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}Removing unused dependencies:"
+        puts "\n#{@config.colors.groups.to_shell_color}Removing unused dependencies:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
       end
 

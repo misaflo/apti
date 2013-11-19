@@ -113,11 +113,21 @@ module Apti
       #
       # @!attribute EFFECT_HIGHLIGHT [r]
       #   @return [Fixnum] Shell effect id for highlighted text.
+      #
+      #
+      # @!attribute EFFECT_DARK [r]
+      #   @return [Fixnum] Shell effect id for dark color text (alias of EFFECT_NORMAL).
+      #
+      # @!attribute EFFECT_LIGHT [r]
+      #   @return [Fixnum] Shell effect id for light color text (alias of EFFECT_BOLD).
       EFFECT_NORMAL    = 0
       EFFECT_BOLD      = 1
       EFFECT_UNDERLINE = 4
       EFFECT_BLINK     = 5
       EFFECT_HIGHLIGHT = 7
+
+      EFFECT_DARK      = EFFECT_NORMAL
+      EFFECT_LIGHT     = EFFECT_BOLD
 
       #
       # @!attribute text [r]
@@ -150,11 +160,11 @@ module Apti
         end
 
         if color.class == String || color.class == Integer
-          @text = read_property(:text, color, @text)
+          @text = read_property('text', color, @text)
         else
-          @text       = read_property(:text,        color[:text],       @text)
-          @background = read_property(:background,  color[:background], @background)
-          @effect     = read_property(:effect,      color[:effect],     @effect)
+          @text       = read_property('text',       color['text'],        @text)
+          @background = read_property('background', color['background'],  @background)
+          @effect     = read_property('effect',     color['effect'],      @effect)
         end
       end
 

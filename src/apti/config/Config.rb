@@ -71,11 +71,11 @@ module Apti
 
         config = YAML::load_file("#{get_dir}#{file}")
 
-        @colors.read_from(config[:colors])
-        @spaces.read_from(config[:spaces])
+        @colors.read_from(config['colors'])
+        @spaces.read_from(config['spaces'])
 
-        @display_size = read_boolean(config[:display_size], @display_size)
-        @no_confirm   = read_boolean(config[:no_confirm],   @no_confirm)
+        @display_size = read_boolean(config['display_size'], @display_size)
+        @no_confirm   = read_boolean(config['no_confirm'],   @no_confirm)
       end
 
       # Write to a configuration file.

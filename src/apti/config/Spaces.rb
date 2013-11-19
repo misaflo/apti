@@ -53,9 +53,9 @@ module Apti
           return
         end
 
-        @columns = read_space(spaces[:columns], @columns)
-        @unit    = read_space(spaces[:unit],    @unit)
-        @search  = read_space(spaces[:search],  @search)
+        @columns = read_space(spaces['columns'], @columns)
+        @unit    = read_space(spaces['unit'],    @unit)
+        @search  = read_space(spaces['search'],  @search)
       end
 
       # Write spaces to a YAML configuration (itself to a configuration file)

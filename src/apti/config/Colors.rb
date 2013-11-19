@@ -63,10 +63,10 @@ module Apti
           return
         end
 
-        @install.read_from(colors[:install])
-        @remove.read_from(colors[:remove])
-        @description.read_from(colors[:description])
-        @groups.read_from(colors[:groups])
+        @install.read_from(colors['install'])
+        @remove.read_from(colors['remove'])
+        @description.read_from(colors['description'])
+        @groups.read_from(colors['groups'])
       end
 
       # Write colors to a YAML configuration (itself to a configuration file)
