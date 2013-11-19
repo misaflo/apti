@@ -16,6 +16,11 @@ fr:
       purge: "Purger ces paquets ?"
       upgrade: "Continuer la mise à niveau ?"
 
+  header:
+    package: "Paquet"
+    version: "Version"
+    size: "Taille"
+
   stat:
     total_installed: "Nombre de paquets installés : %{number}"
     explicitly_installed: "Nombre de paquets installés explicitement : %{number}"

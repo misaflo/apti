@@ -302,8 +302,8 @@ module Apti
       require_relative 'Package'
 
       max = Package.new
-      max.name                = 'Package'
-      max.version_old         = 'Version'
+      max.name                = I18n.t(:'header.package')
+      max.version_old         = I18n.t(:'header.version')
       max.version_new         = ''
       max.size_before_decimal = ''
       max.size_after_decimal  = ''
@@ -511,9 +511,9 @@ module Apti
       print "\n"
 
       # Column's names.
-      header_package = "Package"
-      header_version = "Version"
-      header_size    = "Size"
+      header_package = I18n.t(:'header.package')
+      header_version = I18n.t(:'header.version')
+      header_size    = I18n.t(:'header.size')
 
       print "  #{header_package}"
       print "#{''.rjust(largest_name - header_package.length + @config.spaces.columns)}"

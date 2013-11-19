@@ -16,6 +16,11 @@ en:
       purge: "Purge these packages?"
       upgrade: "Continue the upgrade?"
 
+  header:
+    package: "Package"
+    version: "Version"
+    size: "Size"
+
   stat:
     total_installed: "Total installed packages: %{number}"
     explicitly_installed : "Explicitly installed packages: %{number}"
