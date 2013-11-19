@@ -302,8 +302,8 @@ module Apti
       require_relative 'Package'
 
       max = Package.new
-      max.name                = ''
-      max.version_old         = ''
+      max.name                = 'Package'
+      max.version_old         = 'Version'
       max.version_new         = ''
       max.size_before_decimal = ''
       max.size_after_decimal  = ''
