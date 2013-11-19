@@ -24,15 +24,16 @@
 
 module Apti
 
+  require 'i18n'
   require_relative 'config/Config'
 
   class Apti
-    VERSION = "0.4-dev"
+    VERSION = '0.4-dev'
     NEED_SUPERUSER_RIGHTS = [
-      "install", "remove", "purge", "hold", "unhold", "keep", "reinstall",
-      "markauto", "unmarkauto", "build-depends", "build-dep", "forbid-version",
-      "update", "safe-upgrade", "full-upgrade", "keep-all", "forget-new",
-      "clean", "autoclean"
+      'install', 'remove', 'purge', 'hold', 'unhold', 'keep', 'reinstall',
+      'markauto', 'unmarkauto', 'build-depends', 'build-dep', 'forbid-version',
+      'update', 'safe-upgrade', 'full-upgrade', 'keep-all', 'forget-new',
+      'clean', 'autoclean'
     ]
 
     # temp
@@ -46,6 +47,7 @@ module Apti
     #SPACES_BETWEEN_UNIT = 1
     #NO_CONFIRM = false
 
+    #
     # @!attribute config [r]
     #   @return [Apti::Config::Config] Config.
     #
@@ -54,7 +56,6 @@ module Apti
     #
     # @!attribute NEED_SUPERUSER_RIGHTS [r]
     #   @return [Array<String>] Commands that need superuser rights.
-
     attr_reader :config, :VERSION
 
     # Reads the configuration file.
@@ -62,6 +63,18 @@ module Apti
     # @return [void]
     def initialize
       @config = Config::Config.new
+
+      locales_path = File.dirname("#{__FILE__}") + '/../../locales'
+
+      I18n.load_path = Dir[File.join(locales_path, '*.yml')]
+
+      lang = `echo $LANG`
+
+      if lang =~ /fr_.*/
+        I18n.locale = :fr
+      else
+        I18n.locale = :en
+      end
     end
 
     # Display help.
@@ -69,14 +82,14 @@ module Apti
     # @return [void]
     def help
       puts "usage: #{File.basename $0} commande"
-      puts "Commandes:"
-      puts "  update"
-      puts "  safe-upgrade"
-      puts "  search package"
-      puts "  install package"
-      puts "  remove package"
-      puts "  others aptitude commande..."
-      puts "  stats"
+      puts 'Commandes:'
+      puts '  update'
+      puts '  safe-upgrade'
+      puts '  search package'
+      puts '  install package'
+      puts '  remove package'
+      puts '  others aptitude commande...'
+      puts '  stats'
     end
 
     # Display version.
@@ -84,6 +97,9 @@ module Apti
     # @return [void]
     def version
       puts "apti #{VERSION}"
+      puts I18n.t(:using)
+      puts "  aptitude #{`aptitude --version | head -n 1 | cut -d ' ' -f 2`}"
+      puts "  ruby #{`ruby --version | cut -d ' ' -f 2`}"
     end
 
     # Install packages.
@@ -103,8 +119,10 @@ module Apti
       end
 
       packages = aptitude_string.split(/ {2}/)
+      operation = I18n.t(:'operation.installing')
+      question = I18n.t(:'operation.question.installation')
 
-      if display_packages(packages, 'Installing', @config.colors.install, 'Continue the installation', aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, @config.colors.install, question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -119,12 +137,14 @@ module Apti
       if purge
         aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
         command = "aptitude purge #{package}"
-        operation = 'Purging'
+        operation = I18n.t(:'operation.purging')
+        question = I18n.t(:'operation.question.purge')
 
       else
         aptitude_string = `aptitude remove -VZs --assume-yes #{package}`
         command = "aptitude remove #{package}"
-        operation = 'Removing'
+        operation = I18n.t(:'operation.removing')
+        question = I18n.t(:'operation.question.remove')
       end
 
       # If problem with dependencies, wrong name given,
@@ -135,7 +155,7 @@ module Apti
 
       # If the package is not installed.
       elsif !aptitude_string.include?(':')
-        puts 'Package(s) not installed.'
+        puts I18n.t(:package_not_installed)
         exit 0
       end
 
@@ -145,7 +165,7 @@ module Apti
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
 
-      if display_packages(packages, operation, @config.colors.remove, "#{operation} these packages", aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, @config.colors.remove, question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -173,14 +193,16 @@ module Apti
 
       # If there is no package to upgrade.
       elsif !aptitude_string.include?(':')
-        puts 'System is up to date.'
+        puts I18n.t(:system_is_up_to_date)
         exit 0
       end
 
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
+      operation = I18n.t(:'operation.upgrading')
+      question = I18n.t(:'operation.question.upgrade')
 
-      if display_packages(packages, 'Upgrading', @config.colors.remove, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, @config.colors.remove, question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -234,9 +256,9 @@ module Apti
 
       puts "#{`lsb_release -ds`}\n"
 
-      puts "Total installed packages:         #{packages_installed}"
-      puts "Explicitly installed packages:    #{packages_installed_explicitly}"
-      puts "Space used by packages in cache:  #{cache_size}"
+      puts I18n.t(:'stat.total_installed', number: packages_installed)
+      puts I18n.t(:'stat.explicitly_installed', number: packages_installed_explicitly)
+      puts I18n.t(:'stat.space_used_in_cache', size: cache_size)
     end
 
     # Execute the command with superuser rights if needed.
@@ -414,16 +436,16 @@ module Apti
 
       print_header(max.name.length, max.version_all.length)
 
-      puts "#{@config.colors.groups.to_shell_color}#{operation}:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+      puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
       explicit.each { |package| display_package_line(package, max, color) }
 
       if !dep_install.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}Installing for dependencies:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "\n#{@config.colors.groups.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
       end
 
       if !dep_remove.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}Removing unused dependencies:#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "\n#{@config.colors.groups.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
       end
 
@@ -432,7 +454,7 @@ module Apti
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
-        print "\n#{@config.colors.groups.to_shell_color}#{question}? (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
+        print "\n#{@config.colors.groups.to_shell_color}#{question} (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
         answer = STDIN.gets.chomp
         if answer.empty?
           answer = 'y'

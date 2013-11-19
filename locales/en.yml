@@ -1,0 +1,25 @@
+en:
+  system_is_up_to_date: "System is up to date."
+  package_not_installed: "Package(s) not installed."
+  installing_for_dependencies: "Installing for dependencies:"
+  removing_unused_dependencies: "Removing unused dependencies:"
+  using: "Using:"
+
+  operation:
+    installing: "Installing:"
+    removing: "Removing:"
+    purging: "Purging:"
+    upgrading: "Upgrading:"
+    question:
+      installation: "Continue the installation?"
+      remove: "Remove these package?"
+      purge: "Purge these packages?"
+      upgrade: "Continue the upgrade?"
+
+  stat:
+    total_installed: "Total installed packages: %{number}"
+    explicitly_installed : "Explicitly installed packages: %{number}"
+    space_used_in_cache: "Space used by packages in cache: %{size}"
+
+  warning:
+    upgrade: "Warning: upgrade is deprecated, use safe-upgrade."
