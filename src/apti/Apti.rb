@@ -315,8 +315,8 @@ module Apti
 
       packages_line.each do |package_line|
         # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-        #                      name                  parameter           version_old           ->  version_new                 size_before                                   size_after          size_unit
-        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,][[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+        #                      name                  parameter           version_old           ->  version_new                 size_before                                    size_after          size_unit
+        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,]?[[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
           package = Package.new
 
           package.name                = Regexp.last_match[1]
