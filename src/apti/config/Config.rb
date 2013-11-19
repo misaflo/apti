@@ -49,18 +49,18 @@ module Apti
         require_relative 'Colors'
         require_relative 'Spaces'
 
-        @colors       = Apti::Config::Colors.new
+        @colors       = Colors.new
         @display_size = true
-        @spaces       = Apti::Config::Spaces.new
+        @spaces       = Spaces.new
         @no_confirm   = false
 
         path = get_dir + file
-
         if not File.exists? path
           write_to(file)
         else
           read_from(file)
         end
+
       end
 
       # Read a configuration file (it must exists).
@@ -81,14 +81,14 @@ module Apti
       # Write to a configuration file.
       #
       # @param  filename    [String]    Filename (without path) of configuration file to create.
-      def create_default_file(filename)
+      def write_to(filename)
         require 'yaml'
 
         yaml = {
-          :colors       =>  @colors.write_to(),
-          :display_size =>  @display_size,
-          :spaces       =>  @spaces.write_to(),
-          :no_confirm   =>  @no_confirm
+          'colors'        =>  @colors.write_to(),
+          'display_size'  =>  @display_size,
+          'spaces'        =>  @spaces.write_to(),
+          'no_confirm'    =>  @no_confirm
         }.to_yaml
 
         if not File.directory? get_dir

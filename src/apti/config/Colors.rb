@@ -31,20 +31,26 @@ module Apti
 
       #
       # @!attribute install [r]
-      #   @return [Fixnum] Color of install.
+      #   @return [Apti::Config::Color] Color of install.
       #
       # @!attribute remove [r]
-      #   @return [Fixnum] Color of remove.
+      #   @return [Apti::Config::Color] Color of remove.
       #
       # @!attribute description [r]
-      #   @return [Fixnum] Color of description.
-      attr_reader :install, :remove, :description
+      #   @return [Apti::Config::Color] Color of description.
+      #
+      # @!attribute groups [r]
+      #   @return [Apti::Config::Color] Color of packages groups
+      attr_reader :install, :remove, :description, :groups
 
       # Initialize colors to default.
       def initialize
-        @install      = Apti::Config::Color.new(Apti::Config::Color::COLOR_GREEN, Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
-        @remove       = Apti::Config::Color.new(Apti::Config::Color::COLOR_RED,   Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
-        @description  = Apti::Config::Color.new(Apti::Config::Color::COLOR_BLACK, Apti::Config::Color::BACKGROUND_BLACK, Apti::Config::Color::EFFECT_BOLD)
+        require_relative 'Color'
+
+        @install      = Color.new(Color::TEXT_GREEN, nil, Color::EFFECT_BOLD)
+        @remove       = Color.new(Color::TEXT_RED,   nil, Color::EFFECT_BOLD)
+        @description  = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
+        @groups       = Color.new(Color::TEXT_WHITE, nil, Color::EFFECT_BOLD)
       end
 
       # Read colors from a YAML configuration (itself from a configuration file).
@@ -60,6 +66,7 @@ module Apti
         @install.read_from(colors[:install])
         @remove.read_from(colors[:remove])
         @description.read_from(colors[:description])
+        @groups.read_from(colors[:groups])
       end
 
       # Write colors to a YAML configuration (itself to a configuration file)
@@ -67,9 +74,10 @@ module Apti
       # @return YAML colors part.
       def write_to
         return {
-          :install      =>  @install.write_to(),
-          :remove       =>  @remove.write_to(),
-          :description  =>  @description.write_to()
+          'install'     =>  @install.write_to(),
+          'remove'      =>  @remove.write_to(),
+          'description' =>  @description.write_to(),
+          'groups'      =>  @groups.write_to()
         }
       end
     end

@@ -36,15 +36,15 @@ module Apti
     ]
 
     # temp
-    COLOR_INSTALL = "\e[1;32m"
-    COLOR_REMOVE = "\e[1;31m"
-    COLOR_DESCRIPTION = "\e[1;30m"
-    COLOR_END = "\e[0m"
-    SPACES_SEARCH = 40
-    SPACES_BETWEEN_COLUMNS = 2
-    DISPLAY_PACKAGES_SIZE = true
-    SPACES_BETWEEN_UNIT = 1
-    NO_CONFIRM = false
+    #COLOR_INSTALL = "\e[1;32m"
+    #COLOR_REMOVE = "\e[1;31m"
+    #COLOR_DESCRIPTION = "\e[1;30m"
+    #COLOR_END = "\e[0m"
+    #SPACES_SEARCH = 40
+    #SPACES_BETWEEN_COLUMNS = 2
+    #DISPLAY_PACKAGES_SIZE = true
+    #SPACES_BETWEEN_UNIT = 1
+    #NO_CONFIRM = false
 
     # @!attribute config [r]
     #   @return [Apti::Config::Config] Config.
@@ -61,7 +61,7 @@ module Apti
     #
     # @return [void]
     def initialize
-      #@config = Apti::Config::Config.new
+      @config = Config::Config.new
     end
 
     # Display help.
@@ -104,7 +104,7 @@ module Apti
 
       packages = aptitude_string.split(/ {2}/)
 
-      if display_packages(packages, 'Installing', COLOR_INSTALL, 'Continue the installation', aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, 'Installing', @config.colors.install, 'Continue the installation', aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -145,7 +145,7 @@ module Apti
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
 
-      if display_packages(packages, operation, COLOR_REMOVE, "#{operation} these packages", aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, @config.colors.remove, "#{operation} these packages", aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -180,7 +180,7 @@ module Apti
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
 
-      if display_packages(packages, 'Upgrading', COLOR_REMOVE, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, 'Upgrading', @config.colors.remove, 'Continue the upgrade', aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -206,21 +206,21 @@ module Apti
 
         # Display package name: if the package is installed, we display it in color.
         if package.parameter.include?('i')
-          print "#{COLOR_INSTALL}#{package.name}#{COLOR_END}"
+          print "#{@config.colors.install.to_shell_color}#{package.name}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         else
           print package.name
         end
 
-        print ''.rjust(SPACES_SEARCH - package.name.length)
+        print ''.rjust(@config.spaces.search - package.name.length)
 
-        size_of_line = package_parameter_length_alignment + SPACES_SEARCH + package.description.length
+        size_of_line = package_parameter_length_alignment + @config.spaces.search + package.description.length
 
         # If description is too long, we shorten it.
         if size_of_line > terminal_width
           package.description = package.description[0..(terminal_width - package_parameter_length_alignment - spaces_search - 1)]
         end
 
-        puts "#{COLOR_DESCRIPTION}#{package.description.chomp}#{COLOR_END}"
+        puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
       end
     end
 
@@ -250,14 +250,14 @@ module Apti
         system(command)
 
       elsif `groups`.split.include?('sudo')
-        if no_confirm && NO_CONFIRM
+        if no_confirm && @config.no_confirm
           system "sudo #{command} --assume-yes"
         else
           system "sudo #{command}"
         end
 
       else
-        if no_confirm && NO_CONFIRM
+        if no_confirm && @config.no_confirm
           system "su -c '#{command} --assume-yes'"
         else
           system "su -c '#{command}'"
@@ -391,7 +391,7 @@ module Apti
     #
     # @return [void]
     def display_packages(packages, operation, color, question, download_size)
-      analysis = analysis_packages(packages)
+      analysis  = analysis_packages(packages)
       max       = analysis['max']
       packages  = analysis['packages']
 
@@ -414,17 +414,17 @@ module Apti
 
       print_header(max.name.length, max.version_all.length)
 
-      puts "\033[1m#{operation}:\033[0m"
+      puts "#{@config.colors.groups.to_shell_color}#{operation}:"
       explicit.each { |package| display_package_line(package, max, color) }
 
       if !dep_install.empty?
-        puts "\n\033[1mInstalling for dependencies:\033[0m"
-        dep_install.each { |package| display_package_line(package, max, COLOR_INSTALL) }
+        puts "\n#{@config.colors.groups.to_shell_color}Installing for dependencies:"
+        dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
       end
 
       if !dep_remove.empty?
-        puts "\n\033[1mRemoving unused dependencies:\033[0m"
-        dep_remove.each { |package| display_package_line(package, max, COLOR_REMOVE) }
+        puts "\n#{@config.colors.groups.to_shell_color}Removing unused dependencies:"
+        dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
       end
 
       # Size to download and install.
@@ -432,7 +432,7 @@ module Apti
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
-        print "\n\033[1m#{question}? (Y/n)\033[0m "
+        print "\n#{@config.colors.groups.to_shell_color}#{question}? (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
         answer = STDIN.gets.chomp
         if answer.empty?
           answer = 'y'
@@ -444,30 +444,30 @@ module Apti
 
     # Displaying the line of ONE package (for install, remove and upgrade).
     #
-    # @param package  [Apti::Package] The package to display.
-    # @param max      [Apti::Package] Fake package with max lengths of all attributs.
-    # @param color    [String]        Color (Linux bash color notation) to use for old / current package version.
+    # @param package  [Apti::Package]       The package to display.
+    # @param max      [Apti::Package]       Fake package with max lengths of all attributs.
+    # @param color    [Apti::Config::Color] Color to use for old / current package version.
     #
     # @return [void]
     def display_package_line(package, max, color)
       print "  #{package.name}"
-      print "#{color}#{''.rjust((max.name.length - package.name.length) + SPACES_BETWEEN_COLUMNS)}#{package.version_old}#{COLOR_END}"
+      print "#{color.to_shell_color}#{''.rjust((max.name.length - package.name.length) + @config.spaces.columns)}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
 
       if !package.version_new.nil?
-        print "#{' -> '.rjust((max.version_old.length - package.version_old.length) + ' -> '.length)}#{COLOR_INSTALL}#{package.version_new}#{COLOR_END}"
+        print "#{' -> '.rjust((max.version_old.length - package.version_old.length) + ' -> '.length)}#{@config.colors.install.to_shell_color}#{package.version_new}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         rjust_size = max.version_new.length - package.version_new.length
       else
         rjust_size = max.version_all.length - package.version_old.length
       end
 
-      if DISPLAY_PACKAGES_SIZE && !package.size_before_decimal.nil?
+      if @config.display_size && !package.size_before_decimal.nil?
         line_size_after_length = (package.size_after_decimal.nil? ? 0 : package.size_after_decimal.length)
 
-        print "#{COLOR_DESCRIPTION}"
-        print "#{package.size_before_decimal.rjust(rjust_size + SPACES_BETWEEN_COLUMNS + max.size_before_decimal.length)}"
+        print "#{@config.colors.description.to_shell_color}"
+        print "#{package.size_before_decimal.rjust(rjust_size + @config.spaces.columns + max.size_before_decimal.length)}"
         print "#{package.size_after_decimal}"
-        print "#{package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + SPACES_BETWEEN_UNIT)}"
-        print "#{COLOR_END}"
+        print "#{package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)}"
+        print "#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
       end
 
       print "\n"
@@ -494,10 +494,10 @@ module Apti
       header_size    = "Size"
 
       print "  #{header_package}"
-      print "#{''.rjust(largest_name - header_package.length + SPACES_BETWEEN_COLUMNS)}"
+      print "#{''.rjust(largest_name - header_package.length + @config.spaces.columns)}"
       print "#{header_version}"
-      if DISPLAY_PACKAGES_SIZE
-        print "#{''.rjust(largest_version - header_version.length + SPACES_BETWEEN_COLUMNS + 1)}"
+      if @config.display_size
+        print "#{''.rjust(largest_version - header_version.length + @config.spaces.columns + 1)}"
         print "#{header_size}"
       end
       print "\n"

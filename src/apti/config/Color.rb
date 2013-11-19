@@ -163,9 +163,9 @@ module Apti
       # @return YAML color part.
       def write_to
         return {
-          :text       =>  write_property(:text,       @text),
-          :background =>  write_property(:background, @background),
-          :effect     =>  write_property(:effect,     @effect)
+          'text'        =>  write_property(:text,       @text),
+          'background'  =>  write_property(:background, @background),
+          'effect'      =>  write_property(:effect,     @effect)
         }
       end
 
@@ -203,10 +203,10 @@ module Apti
 
         # If property is a number (always between 0 and 255 inclusive).
         if property.class == Integer || !(property.to_s =~ /^[[:digit:]]{1,3}$/).nil?
-          return color
+          return property
         end
 
-        property_constant = "#{type.upcase}_#{color.upcase}"
+        property_constant = "#{type.upcase}_#{property.upcase}"
         if Color.const_defined?(property_constant, false)
           return Color.const_get(property_constant, false)
         end
@@ -228,8 +228,8 @@ module Apti
 
         constant_start = "#{type.upcase}_"
         constants_array.each do |constant_name|
-          if constant_name.start_with? constant_start
-            constants[constant_name.slice(constant_start.length)] = Color.const_get(constant_name)
+          if constant_name.to_s.start_with? constant_start
+            constants[constant_name.slice(constant_start.length..-1)] = Color.const_get(constant_name)
           end
         end
 
