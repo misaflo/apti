@@ -7,6 +7,12 @@ require_relative 'apti/Apti'
 $VERBOSE = true
 
 apti = Apti::Apti.new
+
+if ARGV[0].nil?
+  apti.help
+  exit(1)
+end
+
 packages = ARGV[1..(ARGV.length - 1)].join(' ')
 
 case ARGV[0]
