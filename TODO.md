@@ -1,8 +1,8 @@
 # bugs
 
-# next versions
+* install, remove or upgrade a package that does not exist
 
-* In upgrade, display package to upgrade first.
+# next versions
 
 ## next
 

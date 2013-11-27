@@ -434,23 +434,40 @@ module Apti
         end
       end
 
+      # Have we packages to upgrade?
+      # If yes, we display them at the end (after news to install, and those to remove).
+      if !explicit.first.version_new.nil?
+        upgrade = true
+      end
+
       print_header(max.name.length, max.version_all.length)
 
-      puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-      explicit.each { |package| display_package_line(package, max, color) }
+      if !upgrade
+        puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        explicit.each { |package| display_package_line(package, max, color) }
+        puts ''
+      end
 
       if !dep_install.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.groups.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
+        puts ''
       end
 
       if !dep_remove.empty?
-        puts "\n#{@config.colors.groups.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.groups.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
+        puts ''
+      end
+
+      if upgrade
+        puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        explicit.each { |package| display_package_line(package, max, color) }
+        puts ''
       end
 
       # Size to download and install.
-      puts "\n#{download_size}"
+      puts "#{download_size}"
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
