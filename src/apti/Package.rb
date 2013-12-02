@@ -1,3 +1,4 @@
+# encoding: utf-8
 #===============================================================================
 #
 # This file is part of Apti.
@@ -25,6 +26,7 @@ module Apti
 
   # Debian package.
   class Package
+    #
     # @!attribute name
     #   @return [String] Name of the package.
     #
@@ -48,7 +50,6 @@ module Apti
     #
     # @!attribute description
     #   @return [String] Description of the package.
-
     attr_accessor :name, :parameter, :version_old, :version_new,
       :size_before_decimal, :size_after_decimal, :size_unit,
       :description
@@ -64,6 +65,32 @@ module Apti
       end
 
       version_all
+    end
+
+    # Test the existence of the package.
+    #
+    # @return [Boolean] True if the package exist.
+    def exist?
+      pkg = `dpkg-query -S #{name} 2>/dev/null | cut -d ' ' -f 1 | grep #{name}: | uniq`
+
+      if pkg.include?(name)
+        return true
+      end
+
+      false
+    end
+
+    # Test if the package is installed.
+    #
+    # @return [Boolean] True if the package is installed.
+    def is_installed?
+      pkg = `dpkg --get-selections | grep -v deinstall | cut -f 1 | grep ^#{name}$`.chomp
+
+      if pkg.eql?(name)
+        return true
+      end
+
+      false
     end
   end
 
