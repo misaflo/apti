@@ -250,7 +250,7 @@ module Apti
     #
     # @return [void]
     def stats
-      packages_installed            = `dpkg --get-selections | grep install | grep -v deinstall | wc -l`
+      packages_installed            = `dpkg --get-selections | grep -v deinstall | wc -l`
       packages_installed_explicitly = `aptitude search '~i !~M' | wc -l`
       cache_size                    = `du -sh /var/cache/apt/archives/ | cut -f 1`
 
