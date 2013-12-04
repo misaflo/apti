@@ -39,9 +39,12 @@ module Apti
       # @!attribute description [r]
       #   @return [Apti::Config::Color] Color of description.
       #
+      # @!attribute size [r]
+      #   @return [Apti::Config::Color] Color of size.
+      #
       # @!attribute groups [r]
       #   @return [Apti::Config::Color] Color of packages groups
-      attr_reader :install, :remove, :description, :groups
+      attr_reader :install, :remove, :description, :size, :groups
 
       # Initialize colors to default.
       def initialize
@@ -50,6 +53,7 @@ module Apti
         @install      = Color.new(Color::TEXT_GREEN, nil, Color::EFFECT_BOLD)
         @remove       = Color.new(Color::TEXT_RED,   nil, Color::EFFECT_BOLD)
         @description  = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
+        @size         = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
         @groups       = Color.new(Color::TEXT_WHITE, nil, Color::EFFECT_BOLD)
       end
 
@@ -66,6 +70,7 @@ module Apti
         @install.read_from(colors['install'])
         @remove.read_from(colors['remove'])
         @description.read_from(colors['description'])
+        @size.read_from(colors['size'])
         @groups.read_from(colors['groups'])
       end
 
@@ -77,6 +82,7 @@ module Apti
           'install'     =>  @install.write_to(),
           'remove'      =>  @remove.write_to(),
           'description' =>  @description.write_to(),
+          'size'        =>  @size.write_to(),
           'groups'      =>  @groups.write_to()
         }
       end

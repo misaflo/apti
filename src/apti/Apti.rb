@@ -502,7 +502,7 @@ module Apti
       if @config.display_size && !package.size_before_decimal.nil?
         line_size_after_length = (package.size_after_decimal.nil? ? 0 : package.size_after_decimal.length)
 
-        print "#{@config.colors.description.to_shell_color}"
+        print "#{@config.colors.size.to_shell_color}"
         print "#{package.size_before_decimal.rjust(rjust_size + @config.spaces.columns + max.size_before_decimal.length)}"
         print "#{package.size_after_decimal}"
         print "#{package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)}"
