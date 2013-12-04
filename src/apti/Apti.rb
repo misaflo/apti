@@ -36,26 +36,12 @@ module Apti
       'clean', 'autoclean'
     ]
 
-    # temp
-    #COLOR_INSTALL = "\e[1;32m"
-    #COLOR_REMOVE = "\e[1;31m"
-    #COLOR_DESCRIPTION = "\e[1;30m"
-    #COLOR_END = "\e[0m"
-    #SPACES_SEARCH = 40
-    #SPACES_BETWEEN_COLUMNS = 2
-    #DISPLAY_PACKAGES_SIZE = true
-    #SPACES_BETWEEN_UNIT = 1
-    #NO_CONFIRM = false
-
     #
     # @!attribute config [r]
     #   @return [Apti::Config::Config] Config.
     #
     # @!attribute VERSION [r]
     #   @return [String] Apti's version.
-    #
-    # @!attribute NEED_SUPERUSER_RIGHTS [r]
-    #   @return [Array<String>] Commands that need superuser rights.
     attr_reader :config, :VERSION
 
     # Reads the configuration file.
@@ -108,14 +94,48 @@ module Apti
     #
     # @return [void]
     def install(package)
+      require_relative 'Package.rb'
+
+      packages_exist = true
+      wrong_packages = ''
+      packages_already_installed = true
+
+      # Check if some packages does not exist.
+      package.split.each do |ele|
+        pkg = Package.new
+        pkg.name = ele
+        if !pkg.exist?
+          packages_exist = false
+          wrong_packages += "#{ele} "
+        end
+      end
+
+      if !packages_exist
+        puts I18n.t(:'error.package.not_found', packages: wrong_packages)
+        exit 1
+      end
+
+      # Check if all packages are not already installed.
+      package.split.each do |ele|
+        pkg = Package.new
+        pkg.name = ele
+        if !pkg.is_installed?
+          packages_already_installed = false
+        end
+      end
+
+      if packages_already_installed
+        puts I18n.t(:'error.package.already_installed')
+        exit 1
+      end
+
       aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
       command = "aptitude install #{package}"
 
-      # if problem with dependencies, wrong name given,
-      # or package already installed : display aptitude's message
-      if aptitude_string.include?('1)') || !aptitude_string.include?(':')
+      # if problem with dependencies: display aptitude's message
+      if aptitude_string.include?('1)')
         puts aptitude_string
-        exit 0
+        exit 1
       end
 
       packages = aptitude_string.split(/ {2}/)

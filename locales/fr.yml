@@ -9,12 +9,17 @@ fr:
     installing: "Installation :"
     removing: "Suppression :"
     purging: "Purge :"
-    upgrading: "Mise à niveau :"
+    upgrading: "Mise à jour :"
     question:
       installation: "Continuer l'installation ?"
       remove: "Supprimer ces paquets ?"
       purge: "Purger ces paquets ?"
       upgrade: "Continuer la mise à niveau ?"
+
+  error:
+    package:
+      not_found: "Impossible de trouver le(s) paquet(s) : %{packages}"
+      already_installed: "Paquet(s) déjà installé(s)."
 
   header:
     package: "Paquet"

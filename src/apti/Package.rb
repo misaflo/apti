@@ -71,7 +71,7 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      pkg = `dpkg-query -S #{name} 2>/dev/null | cut -d ' ' -f 1 | grep #{name}: | uniq`
+      pkg = `dpkg-query -W #{name} 2>/dev/null`
 
       if pkg.include?(name)
         return true

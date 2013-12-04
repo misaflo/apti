@@ -16,6 +16,11 @@ en:
       purge: "Purge these packages?"
       upgrade: "Continue the upgrade?"
 
+  error:
+    package:
+      not_found: "Couldn't find package(s): %{packages}"
+      already_installed: "Packages(s) already installed."
+
   header:
     package: "Package"
     version: "Version"
