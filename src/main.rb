@@ -29,7 +29,7 @@ when 'safe-upgrade'
   apti.upgrade(packages)
 
 when 'upgrade'
-  puts 'Warning: upgrade is deprecated, use safe-upgrade.'
+  puts I18n.t(:'warning.upgrade')
   apti.upgrade(packages)
 
 when 'full-upgrade'
