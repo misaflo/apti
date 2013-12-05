@@ -19,7 +19,8 @@ fr:
   error:
     package:
       not_found: "Impossible de trouver le(s) paquet(s) : %{packages}"
-      already_installed: "Paquet(s) déjà installé(s)."
+      installed: "Paquet(s) déjà installé(s)."
+      not_installed: "Paquet(s) non installé(s)."
 
   header:
     package: "Paquet"

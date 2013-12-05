@@ -19,7 +19,8 @@ en:
   error:
     package:
       not_found: "Couldn't find package(s): %{packages}"
-      already_installed: "Packages(s) already installed."
+      installed: "Packages(s) already installed."
+      not_installed: "Packages(s) not installed."
 
   header:
     package: "Package"

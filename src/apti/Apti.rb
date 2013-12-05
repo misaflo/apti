@@ -94,45 +94,26 @@ module Apti
     #
     # @return [void]
     def install(package)
-      require_relative 'Package.rb'
-
-      packages_exist = true
-      wrong_packages = ''
-      packages_already_installed = true
-
       # Check if some packages does not exist.
-      package.split.each do |ele|
-        pkg = Package.new
-        pkg.name = ele
-        if !pkg.exist?
-          packages_exist = false
-          wrong_packages += "#{ele} "
-        end
-      end
+      packages_not_found = get_packages_not_found(package.split)
 
-      if !packages_exist
-        puts I18n.t(:'error.package.not_found', packages: wrong_packages)
+      if !packages_not_found.empty?
+        puts I18n.t(:'error.package.not_found', packages: packages_not_found.join(' '))
         exit 1
       end
 
       # Check if all packages are not already installed.
-      package.split.each do |ele|
-        pkg = Package.new
-        pkg.name = ele
-        if !pkg.is_installed?
-          packages_already_installed = false
-        end
-      end
+      packages_already_installed = all_installed?(package.split)
 
       if packages_already_installed
-        puts I18n.t(:'error.package.already_installed')
+        puts I18n.t(:'error.package.installed')
         exit 1
       end
 
       aptitude_string = `aptitude install -VZs --allow-untrusted --assume-yes #{package}`
       command = "aptitude install #{package}"
 
-      # if problem with dependencies: display aptitude's message
+      # If problem with dependencies: display aptitude's message.
       if aptitude_string.include?('1)')
         puts aptitude_string
         exit 1
@@ -154,6 +135,24 @@ module Apti
     #
     # @return [void]
     def remove(package, purge = false)
+      require_relative 'Package.rb'
+
+      # Check if some packages does not exist.
+      packages_not_found = get_packages_not_found(package.split)
+
+      if !packages_not_found.empty?
+        puts I18n.t(:'error.package.not_found', packages: packages_not_found.join(' '))
+        exit 1
+      end
+
+      # Check if all packages are not uninstalled.
+      packages_not_installed = all_not_installed?(package.split)
+
+      if packages_not_installed
+        puts I18n.t(:'error.package.not_installed')
+        exit 1
+      end
+
       if purge
         aptitude_string = `aptitude purge -VZs --assume-yes #{package}`
         command = "aptitude purge #{package}"
@@ -308,6 +307,69 @@ module Apti
     end
 
     private
+
+    # Return an array of packages that does not exist.
+    #
+    # @param packages [Array<String>] Packages to check.
+    #
+    # @return [Array<String>] Packages not found.
+    def get_packages_not_found(packages)
+      require_relative 'Package'
+
+      not_found = []
+
+      packages.each do |package_name|
+        pkg = Package.new
+        pkg.name = package_name
+        if !pkg.exist?
+          not_found.push(package_name)
+        end
+      end
+
+      not_found
+    end
+
+    # Check if all packages are already installed.
+    #
+    # @param packages [Array<String>] Packages to check.
+    #
+    # @return [Boolean]
+    def all_installed?(packages)
+      require_relative 'Package'
+
+      all_installed = true
+
+      packages.each do |package_name|
+        pkg = Package.new
+        pkg.name = package_name
+        if !pkg.is_installed?
+          all_installed = false
+        end
+      end
+
+      all_installed
+    end
+
+    # Check if all packages are not installed.
+    #
+    # @param packages [Array<String>] Packages to check.
+    #
+    # @return [Boolean]
+    def all_not_installed?(packages)
+      require_relative 'Package'
+
+      all_not_installed = true
+
+      packages.each do |package_name|
+        pkg = Package.new
+        pkg.name = package_name
+        if pkg.is_installed?
+          all_not_installed = false
+        end
+      end
+
+      all_not_installed
+    end
 
     # Separate packages in analysis parts (only for install, remove and upgrade).
     # 
