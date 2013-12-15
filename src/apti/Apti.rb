@@ -319,6 +319,11 @@ module Apti
       not_found = []
 
       packages.each do |package_name|
+        # If we use option (ex: -t sid), we don't check if packages exist.
+        if package_name =~ /^-.*$/
+          return []
+        end
+
         pkg = Package.new
         pkg.name = package_name
         if !pkg.exist?

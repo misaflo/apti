@@ -71,7 +71,7 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      pkg = `dpkg-query -W #{name} 2>/dev/null`
+      pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name}"`
 
       if pkg.include?(name)
         return true
