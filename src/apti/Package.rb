@@ -71,9 +71,13 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name}"`
+      # name without architecture information
+      # ex: 'package' instead of 'package:amd64'
+      name_without_arch = name.split(':').first
 
-      if pkg.include?(name)
+      pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_without_arch}"`
+
+      if pkg.include?(name_without_arch)
         return true
       end
 
