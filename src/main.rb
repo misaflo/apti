@@ -15,6 +15,11 @@ end
 
 packages = ARGV[1..(ARGV.length - 1)].join(' ')
 
+if ['search', 'remove', 'purge', 'install'].include?(ARGV[0]) && packages.empty?
+  apti.help
+  exit(1)
+end
+
 case ARGV[0]
 
 when '--help'

@@ -94,6 +94,10 @@ module Apti
     #
     # @return [void]
     def install(package)
+
+      if package.eql? nil
+        usage
+      end
       # Check if some packages does not exist.
       packages_not_found = get_packages_not_found(package.split)
 
@@ -135,7 +139,7 @@ module Apti
     #
     # @return [void]
     def remove(package, purge = false)
-      require_relative 'Package.rb'
+      require_relative 'Package'
 
       # Check if some packages does not exist.
       packages_not_found = get_packages_not_found(package.split)
@@ -145,12 +149,14 @@ module Apti
         exit 1
       end
 
-      # Check if all packages are not uninstalled.
-      packages_not_installed = all_not_installed?(package.split)
+      # Check if all packages are not uninstalled (only for remove).
+      if !purge
+        packages_not_installed = all_not_installed?(package.split)
 
-      if packages_not_installed
-        puts I18n.t(:'error.package.not_installed')
-        exit 1
+        if packages_not_installed
+          puts I18n.t(:'error.package.not_installed')
+          exit 1
+        end
       end
 
       if purge
