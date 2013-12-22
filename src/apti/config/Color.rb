@@ -55,7 +55,7 @@ module Apti
       #   @return [Fixnum] Shell text color id for cyan.
       #
       # @!attribute COLOR_WHITE [r]
-      #   @return [Fixnum] Shell text color id for WHITE.
+      #   @return [Fixnum] Shell text color id for white.
       TEXT_BLACK   = 30
       TEXT_RED     = 31
       TEXT_GREEN   = 32
@@ -88,7 +88,7 @@ module Apti
       #   @return [Fixnum] Shell background color id for cyan.
       #
       # @!attribute BACKGROUND_WHITE [r]
-      #   @return [Fixnum] Shell background color id for WHITE.
+      #   @return [Fixnum] Shell background color id for white.
       BACKGROUND_BLACK   = 40
       BACKGROUND_RED     = 41
       BACKGROUND_GREEN   = 42
@@ -168,7 +168,7 @@ module Apti
         end
       end
 
-      # Write the color to a YAML configuration (itself to a configuration file)
+      # Write the color to a YAML configuration (itself to a configuration file).
       #
       # @return YAML color part.
       def write_to
@@ -193,10 +193,11 @@ module Apti
           color = color + ";#{@background}"
         end
 
-        return color + "m"
+        color + "m"
       end
 
       private
+
       # Get correct value of a "color" from YAML configuration (cf. read_from).
       #
       # @note If *property* is a String, Color will try to convert it to a shell id using "COLOR_*", "BACKGROUND_*" or "EFFECT_*" constants (according to *type* parameter).
@@ -224,6 +225,7 @@ module Apti
         print "Configuration: Unable to get property #{type} from \"#{property}\"\n"
         default_value
       end
+
       # Get correct value of a "color" to YAML configuration (cf. write_to).
       #
       # @note Color will try to convert *property* to a string using "COLOR_*", "BACKGROUND_*" or "EFFECT_*" constants (according to *type* parameter).
@@ -231,9 +233,9 @@ module Apti
       # @param  type      [String]  The "type" of property to read. Must only be "color", "background" or "effect".
       # @param  property  [Fixnum]  The value to read.
       # 
-      # @return [String,Fixnum] The string according to property value, or his direct value
+      # @return [String,Fixnum] The string according to property value, or his direct value.
       def write_property(type, property)
-        constants_array = Color.constants;
+        constants_array = Color.constants
         constants = {}
 
         constant_start = "#{type.upcase}_"

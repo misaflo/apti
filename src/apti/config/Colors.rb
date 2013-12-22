@@ -42,9 +42,9 @@ module Apti
       # @!attribute size [r]
       #   @return [Apti::Config::Color] Color of size.
       #
-      # @!attribute groups [r]
-      #   @return [Apti::Config::Color] Color of packages groups
-      attr_reader :install, :remove, :description, :size, :groups
+      # @!attribute text [r]
+      #   @return [Apti::Config::Color] Color of text (operation, confirmation, ...).
+      attr_reader :install, :remove, :description, :size, :text
 
       # Initialize colors to default.
       def initialize
@@ -54,14 +54,12 @@ module Apti
         @remove       = Color.new(Color::TEXT_RED,   nil, Color::EFFECT_BOLD)
         @description  = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
         @size         = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
-        @groups       = Color.new(Color::TEXT_WHITE, nil, Color::EFFECT_BOLD)
+        @text         = Color.new(Color::TEXT_WHITE, nil, Color::EFFECT_BOLD)
       end
 
       # Read colors from a YAML configuration (itself from a configuration file).
       #
       # @param  colors  [Hash{String => String, Fixnum}]   YAML colors part.
-      #
-      # TODO Color can be get with a simple string corresponding to text color.
       def read_from(colors)
         if colors.nil?
           return
@@ -71,19 +69,19 @@ module Apti
         @remove.read_from(colors['remove'])
         @description.read_from(colors['description'])
         @size.read_from(colors['size'])
-        @groups.read_from(colors['groups'])
+        @text.read_from(colors['text'])
       end
 
-      # Write colors to a YAML configuration (itself to a configuration file)
+      # Write colors to a YAML configuration (itself to a configuration file).
       #
       # @return YAML colors part.
       def write_to
         return {
-          'install'     =>  @install.write_to(),
-          'remove'      =>  @remove.write_to(),
-          'description' =>  @description.write_to(),
-          'size'        =>  @size.write_to(),
-          'groups'      =>  @groups.write_to()
+          'install'     =>  @install.write_to,
+          'remove'      =>  @remove.write_to,
+          'description' =>  @description.write_to,
+          'size'        =>  @size.write_to,
+          'text'        =>  @text.write_to
         }
       end
     end

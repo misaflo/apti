@@ -85,9 +85,9 @@ module Apti
         require 'yaml'
 
         yaml = {
-          'colors'        =>  @colors.write_to(),
+          'colors'        =>  @colors.write_to,
           'display_size'  =>  @display_size,
-          'spaces'        =>  @spaces.write_to(),
+          'spaces'        =>  @spaces.write_to,
           'no_confirm'    =>  @no_confirm
         }.to_yaml
 
@@ -102,20 +102,22 @@ module Apti
       end
 
       private
+
       # Get path to Apti configuration directory.
       #
       # @return [String]  Path of Apti configuration directory.
       def get_dir
         return get_env_dir + '/apti/'
       end
+
       # Get path to system configuration directory.
       #
       # @return [String]  Path of sytem configuration directory.
       def get_env_dir
-        if ENV["XDG_CONFIG_HOME"].nil?
-          return "#{ENV["HOME"]}/.config"
+        if ENV['XDG_CONFIG_HOME'].nil?
+          return "#{ENV['HOME']}/.config"
         else
-          return ENV["XDG_CONFIG_HOME"]
+          return ENV['XDG_CONFIG_HOME']
         end
       end
 
@@ -130,7 +132,7 @@ module Apti
           return default_value
         end
 
-        return bool
+        bool
       end
     end
 

@@ -14,7 +14,7 @@ fr:
       installation: "Continuer l'installation ?"
       remove: "Supprimer ces paquets ?"
       purge: "Purger ces paquets ?"
-      upgrade: "Continuer la mise à niveau ?"
+      upgrade: "Continuer la mise à jour ?"
 
   error:
     package:

@@ -536,25 +536,25 @@ module Apti
       print_header(max.name.length, max.version_all.length)
 
       if !upgrade
-        puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         explicit.each { |package| display_package_line(package, max, color) }
         puts ''
       end
 
       if !dep_install.empty?
-        puts "#{@config.colors.groups.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
         puts ''
       end
 
       if !dep_remove.empty?
-        puts "#{@config.colors.groups.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
         puts ''
       end
 
       if upgrade
-        puts "#{@config.colors.groups.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         explicit.each { |package| display_package_line(package, max, color) }
         puts ''
       end
@@ -564,7 +564,7 @@ module Apti
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
-        print "\n#{@config.colors.groups.to_shell_color}#{question} (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
+        print "\n#{@config.colors.text.to_shell_color}#{question} (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
         answer = STDIN.gets.chomp
         if answer.empty?
           answer = 'y'
