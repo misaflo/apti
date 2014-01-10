@@ -1,0 +1,36 @@
+fr:
+  system_is_up_to_date: "Le système est à jour."
+  package_not_installed: "Paquet(s) non installé(s)."
+  installing_for_dependencies: "Installation pour dépendances :"
+  removing_unused_dependencies: "Suppression des dépendances non utilisées :"
+  using: "Utilisant :"
+
+  operation:
+    installing: "Installation :"
+    removing: "Suppression :"
+    purging: "Purge :"
+    upgrading: "Mise à jour :"
+    question:
+      installation: "Continuer l'installation ?"
+      remove: "Supprimer ces paquets ?"
+      purge: "Purger ces paquets ?"
+      upgrade: "Continuer la mise à jour ?"
+
+  error:
+    package:
+      not_found: "Impossible de trouver le(s) paquet(s) : %{packages}"
+      installed: "Paquet(s) déjà installé(s)."
+      not_installed: "Paquet(s) non installé(s)."
+
+  header:
+    package: "Paquet"
+    version: "Version"
+    size: "Taille"
+
+  stat:
+    total_installed: "Nombre de paquets installés : %{number}"
+    explicitly_installed: "Nombre de paquets installés explicitement : %{number}"
+    space_used_in_cache: "Espace utilisé par les paquets dans le cache : %{size}"
+
+  warning:
+    upgrade: "Avertissement: upgrade est déprécié, utilisez safe-upgrade."

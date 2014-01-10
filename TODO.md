@@ -1,15 +1,12 @@
 # bugs
 
+* install, remove or upgrade a package that does not exist
 
 # next versions
-
-## apti 0.4
-
-* cleaning and testing of code
 
 ## next
 
 * object oriented code
 * translations (French)
-* respect this style of coding : https://github.com/bbatsov/ruby-style-guide
-* tests with popular languages : spanish, ... (displaying of size)
+* respect this style of coding: [ruby-style-guide](https://github.com/bbatsov/ruby-style-guide)
+* tests with popular languages: spanish, ... (displaying of size)
