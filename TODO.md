@@ -1,12 +1,9 @@
 # bugs
 
-* install, remove or upgrade a package that does not exist
+* languages other than english or french may not work well (size of packages)
 
 # next versions
 
 ## next
 
-* object oriented code
-* translations (French)
 * respect this style of coding: [ruby-style-guide](https://github.com/bbatsov/ruby-style-guide)
-* tests with popular languages: spanish, ... (displaying of size)

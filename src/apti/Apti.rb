@@ -53,6 +53,7 @@ module Apti
       locales_path = File.dirname("#{__FILE__}") + '/../../locales'
 
       I18n.load_path = Dir[File.join(locales_path, '*.yml')]
+      I18n.enforce_available_locales = true
 
       lang = `echo $LANG`
 
@@ -499,7 +500,7 @@ module Apti
     # Display all packages of an operation (install, remove or upgrade).
     #
     # @param packages       [Array<String>] List of packages as outputted by aptitude.
-    # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing"
+    # @param operation      [String]        Operation requested : "Installing", "Upgrading" or "Removing".
     # @param color          [String]        Color (Linux bash color notation) to use for old / current package version.
     # @param question       [String]        Question to ask for continuing operation after displaying packages list.
     # @param download_size  [String]        Aptitude's text about download sizes.
