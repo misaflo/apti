@@ -53,7 +53,10 @@ module Apti
       locales_path = File.dirname("#{__FILE__}") + '/../../locales'
 
       I18n.load_path = Dir[File.join(locales_path, '*.yml')]
-      I18n.enforce_available_locales = true
+
+      if defined? I18n.enforce_available_locales
+        I18n.enforce_available_locales = true
+      end
 
       lang = `echo $LANG`
 
