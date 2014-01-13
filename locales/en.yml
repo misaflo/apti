@@ -34,3 +34,8 @@ en:
 
   warning:
     upgrade: "Warning: upgrade is deprecated, use safe-upgrade."
+
+  number:
+    separator:
+      thousands: ","
+      decimal: "."

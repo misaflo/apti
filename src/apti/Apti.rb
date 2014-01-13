@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2012-2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+# Copyright (C) 2012-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2013 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -406,14 +406,17 @@ module Apti
       max.size_after_decimal  = ''
       max.size_unit           = ''
 
+      thousands_separator = I18n.t(:'number.separator.thousands')
+      decimal_separator   = I18n.t(:'number.separator.decimal')
+
       packages = []
 
       packages_line.delete_if { |package| package == '' || package == "\n" }
 
       packages_line.each do |package_line|
         # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-        #                      name                  parameter           version_old                    ->  version_new                 size_before                                    size_after          size_unit
-        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:][:space:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[ ,]?[[:digit:]]{3})*)([.,][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+        #                      name                  parameter           version_old                    ->  version_new                 size_before                                                       size_after                            size_unit
+        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:][:space:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)([#{decimal_separator}][[:digit:]]+)? ([[:alpha:]]+)>)?$/
           package = Package.new
 
           package.name                = Regexp.last_match[1]

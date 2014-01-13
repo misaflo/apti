@@ -34,3 +34,8 @@ fr:
 
   warning:
     upgrade: "Avertissement: upgrade est déprécié, utilisez safe-upgrade."
+
+  number:
+    separator:
+      thousands: " "
+      decimal: ","

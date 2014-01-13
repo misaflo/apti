@@ -1,7 +1,5 @@
 # bugs
 
-* languages other than english or french may not work well (size of packages)
-
 # next versions
 
 ## next
