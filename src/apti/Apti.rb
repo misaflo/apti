@@ -589,8 +589,12 @@ module Apti
     #
     # @return [void]
     def display_package_line(package, max, color)
+      # Name.
       print "  #{package.name}"
-      print "#{color.to_shell_color}#{''.rjust((max.name.length - package.name.length) + @config.spaces.columns)}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+      # Spaces.
+      print ''.rjust((max.name.length - package.name.length) + @config.spaces.columns)
+      # Version old.
+      print "#{color.to_shell_color}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
 
       if !package.version_new.nil?
         print "#{' -> '.rjust((max.version_old.length - package.version_old.length) + ' -> '.length)}#{@config.colors.install.to_shell_color}#{package.version_new}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
@@ -602,11 +606,16 @@ module Apti
       if @config.display_size && !package.size_before_decimal.nil?
         line_size_after_length = (package.size_after_decimal.nil? ? 0 : package.size_after_decimal.length)
 
-        print "#{@config.colors.size.to_shell_color}"
-        print "#{package.size_before_decimal.rjust(rjust_size + @config.spaces.columns + max.size_before_decimal.length)}"
-        print "#{package.size_after_decimal}"
-        print "#{package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)}"
-        print "#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        # Spaces.
+        print ''.rjust(rjust_size + @config.spaces.columns + max.size_before_decimal.length - package.size_before_decimal.length)
+        # Start color.
+        print @config.colors.size.to_shell_color
+        # Size.
+        print "#{package.size_before_decimal}#{package.size_after_decimal}"
+        # Spaces and unit.
+        print package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)
+        # End color.
+        print Config::Color.new(Config::Color::STYLE_END).to_shell_color
       end
 
       print "\n"
