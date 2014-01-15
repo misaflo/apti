@@ -16,6 +16,20 @@ Dependencies:
 
 Put apti in /usr/local/, and create a link to main.rb: `ln -s /usr/local/apti/main.rb /usr/local/bin/apti`
 
+# Configuration
+
+Configuration file is in ~/.config/apti (by default).
+
+* colors:
+    * available colors are: BLACK, RED, GREEN, ORANGE, BLUE, MAGENTA, CYAN and WHITE.
+    * available effects are: NORMAL, BOLD, UNDERLINE, BLINK and HIGHLIGHT.
+* display_size: displaying size of packages or not (default true).
+* spaces:
+    * columns: between columns in `install`, `remove`, `upgrade`.
+    * unit: juste before size's unit.
+    * search: between package name and description.
+* no_confirm: if true, don't ask for the aptitude's confirmation.
+
 # Screenshots
 
 ![command apti install](http://gnux.legtux.org/src/images/scripts/apti_install.png "command apti install")
