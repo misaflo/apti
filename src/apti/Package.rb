@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2013 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -60,7 +60,7 @@ module Apti
     def version_all
       version_all = version_old
 
-      if !version_new.nil?
+      if !version_new.empty?
         version_all += " -> #{version_new}"
       end
 
