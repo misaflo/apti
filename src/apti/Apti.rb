@@ -534,6 +534,11 @@ module Apti
         end
       end
 
+      if explicit.empty?
+        puts I18n.t(:'operation.nothing_to_do')
+        exit 1
+      end
+
       # Have we packages to upgrade?
       # If yes, we display them at the end (after news to install, and those to remove).
       if !explicit.first.version_new.nil?

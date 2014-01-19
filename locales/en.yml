@@ -10,6 +10,7 @@ en:
     removing: "Removing:"
     purging: "Purging:"
     upgrading: "Upgrading:"
+    nothing_to_do: "Nothing to do."
     question:
       installation: "Continue the installation?"
       remove: "Remove these package?"

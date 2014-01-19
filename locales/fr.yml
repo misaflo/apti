@@ -10,6 +10,7 @@ fr:
     removing: "Suppression :"
     purging: "Purge :"
     upgrading: "Mise à jour :"
+    nothing_to_do: "Rien à faire."
     question:
       installation: "Continuer l'installation ?"
       remove: "Supprimer ces paquets ?"
