@@ -40,7 +40,7 @@ module Apti
 
       # Initialize spaces to default.
       def initialize
-        @columns =  2
+        @columns =  3
         @unit    =  1
         @search  = 40
       end
