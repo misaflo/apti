@@ -93,7 +93,7 @@ module Apti
 
         if not File.directory? get_dir
           require 'fileutils'
-          FileUtils.mkdir_p = get_dir
+          FileUtils.mkdir_p(get_dir)
         end
 
         File.open("#{get_dir}#{filename}", 'w') do |file|
