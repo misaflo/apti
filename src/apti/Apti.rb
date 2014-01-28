@@ -268,7 +268,7 @@ module Apti
 
         # If description is too long, we shorten it.
         if size_of_line > terminal_width
-          package.description = package.description[0..(terminal_width - package_parameter_length_alignment - spaces_search - 1)]
+          package.description = package.description[0..(terminal_width - package_parameter_length_alignment - @config.spaces.search - 1)]
         end
 
         puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
