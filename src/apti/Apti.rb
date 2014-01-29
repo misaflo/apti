@@ -44,26 +44,24 @@ module Apti
     #   @return [String] Apti's version.
     attr_reader :config, :VERSION
 
-    # Reads the configuration file.
+    # Reads the configuration file, and define locale.
     #
     # @return [void]
     def initialize
       @config = Config::Config.new
 
       locales_path = File.dirname("#{__FILE__}") + '/../../locales'
-
-      I18n.load_path = Dir[File.join(locales_path, '*.yml')]
+      lang = `echo $LANG`.split('_').first
 
       if defined? I18n.enforce_available_locales
         I18n.enforce_available_locales = true
       end
 
-      lang = `echo $LANG`
+      I18n.load_path = Dir[File.join(locales_path, '*.yml')]
+      I18n.default_locale = :en
 
-      if lang =~ /fr_.*/
-        I18n.locale = :fr
-      else
-        I18n.locale = :en
+      if I18n.locale_available?(lang)
+        I18n.locale = lang
       end
     end
 
