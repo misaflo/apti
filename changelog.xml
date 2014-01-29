@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="changelog.xslt"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Apti's update log</title>
+		<link>https://gitorious.org/apti/apti</link>
+		<description>Log about all "stable" updates on Apti</description>
+
+		<atom:link href="https://gitorious.org/apti/apti/source/stable:changelog.xml" rel="self" type="application/rss+xml" />
+
+		<lastBuildDate>Tue Jan 28 13:32:47 2014 +0100</lastBuildDate>
+
+		<item>
+			<title>Version 0.5.1</title>
+			<link>https://gitorious.org/apti/apti/source/v0.5.1:</link>
+			<guid isPermaLink="false">v0_5_1</guid>
+			<description><![CDATA[
+				<ul>
+					<li>Fix bug when try to create the configuration directory of Apti ;</li>
+					<li>Fix problem in search when description is too long.</li>
+				</ul>
+			]]></description>
+			<pubDate>Tue Jan 28 13:32:47 2014 +0100</pubDate>
+		</item>
+		<item>
+			<title>Version 0.5</title>
+			<link>https://gitorious.org/apti/apti/source/v0.5:</link>
+			<guid isPermaLink="false">v0_5</guid>
+			<description><![CDATA[
+				<ul>
+					<li>Add internationalisation (English, French) ;</li>
+					<li>Better separations of packages (explicitly installed, dependencies, ...) ;</li>
+					<li>New configuration file (in yaml) with better personalisation (color, background, effect) ;</li>
+					<li>Some bug fixes.</li>
+				</ul>
+			]]></description>
+			<pubDate>Wed Jan 22 11:00:12 2014 +0100</pubDate>
+		</item>
+	</channel>
+</rss>
