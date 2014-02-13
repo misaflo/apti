@@ -60,7 +60,12 @@ module Apti
       I18n.load_path = Dir[File.join(locales_path, '*.yml')]
       I18n.default_locale = :en
 
-      if I18n.locale_available?(lang)
+      #if I18n.locale_available?(lang)
+        #I18n.locale = lang
+      #end
+      if defined? I18n.locale_available?
+        I18n.locale = lang if I18n.locale_available?(lang)
+      else
         I18n.locale = lang
       end
     end
