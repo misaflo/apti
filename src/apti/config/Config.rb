@@ -82,23 +82,13 @@ module Apti
       #
       # @param  filename    [String]    Filename (without path) of configuration file to create.
       def write_to(filename)
-        require 'yaml'
-
-        yaml = {
-          'colors'        =>  @colors.write_to,
-          'display_size'  =>  @display_size,
-          'spaces'        =>  @spaces.write_to,
-          'no_confirm'    =>  @no_confirm
-        }.to_yaml
+        require 'fileutils'
 
         if not File.directory? get_dir
-          require 'fileutils'
           FileUtils.mkdir_p(get_dir)
         end
 
-        File.open("#{get_dir}#{filename}", 'w') do |file|
-          file.write(yaml)
-        end
+        FileUtils.cp("#{File.dirname("#{__FILE__}")}/../../../initial_config.yml", "#{get_dir}#{filename}");
       end
 
       private

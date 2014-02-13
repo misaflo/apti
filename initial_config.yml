@@ -1,0 +1,28 @@
+---
+colors:
+  install:
+    text: GREEN
+    background: 
+    effect: BOLD
+  remove:
+    text: RED
+    background: 
+    effect: BOLD
+  description:
+    text: BLACK
+    background: 
+    effect: BOLD
+  size:
+    text: BLACK
+    background: 
+    effect: BOLD
+  text:
+    text: WHITE
+    background: 
+    effect: BOLD
+display_size: true
+spaces:
+  columns: 3
+  unit: 1
+  search: 40
+no_confirm: false
