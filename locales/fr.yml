@@ -9,7 +9,9 @@ fr:
     installing: "Installation :"
     removing: "Suppression :"
     purging: "Purge :"
-    upgrading: "Mise à jour :"
+    upgrading: "Mise à jour,"
+    new_revisions: "nouvelles révisions :"
+    new_versions: "nouvelles versions :"
     nothing_to_do: "Rien à faire."
     question:
       installation: "Continuer l'installation ?"

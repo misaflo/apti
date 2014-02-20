@@ -4,7 +4,7 @@
 # This file is part of Apti.
 #
 # Copyright (C) 2012-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
-# Copyright (C) 2013 by Julien Rosset <jul.rosset at gmail dot com>
+# Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
 # Apti is free software: you can redistribute it and/or modify
@@ -60,9 +60,6 @@ module Apti
       I18n.load_path = Dir[File.join(locales_path, '*.yml')]
       I18n.default_locale = :en
 
-      #if I18n.locale_available?(lang)
-        #I18n.locale = lang
-      #end
       if defined? I18n.locale_available?
         I18n.locale = lang if I18n.locale_available?(lang)
       else
@@ -537,6 +534,22 @@ module Apti
         end
       end
 
+      # If we do an upgrade, we separate new revisions and new versions.
+      if operation.eql?(I18n.t(:'operation.upgrading'))
+        upgrade_revisions = []
+        upgrade_versions = []
+
+        explicit.each do |package|
+
+          if package.version_old.split('-').first == package.version_new.split('-').first
+            upgrade_revisions.push(package)
+          else
+            upgrade_versions.push(package)
+          end
+
+        end
+      end
+
       if explicit.empty?
         puts I18n.t(:'operation.nothing_to_do')
         exit 1
@@ -569,8 +582,12 @@ module Apti
       end
 
       if upgrade
-        puts "#{@config.colors.text.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-        explicit.each { |package| display_package_line(package, max, color) }
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        upgrade_revisions.each { |package| display_package_line(package, max, color) }
+        puts ''
+
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        upgrade_versions.each { |package| display_package_line(package, max, color) }
         puts ''
       end
 
