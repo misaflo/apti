@@ -28,7 +28,7 @@ module Apti
     require_relative 'ColorsUpgradeVersion'
 
     # Colors to use in apti.
-    class ColorsUpgradeVersion < ColorsUpgradeVersion
+    class ColorsUpgradeRevision < ColorsUpgradeVersion
 
       #
       # @!attribute static [r]
