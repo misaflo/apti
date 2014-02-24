@@ -33,6 +33,9 @@ module Apti
       # @!attribute install [r]
       #   @return [Apti::Config::Color] Color of install.
       #
+      # @!attribute upgrade [r]
+      #   @return [Apti::Config::ColorsUpgrade] Colors of upgrade.
+      #
       # @!attribute remove [r]
       #   @return [Apti::Config::Color] Color of remove.
       #
@@ -44,13 +47,15 @@ module Apti
       #
       # @!attribute text [r]
       #   @return [Apti::Config::Color] Color of text (operation, confirmation, ...).
-      attr_reader :install, :remove, :description, :size, :text
+      attr_reader :install, :upgrade, :remove, :description, :size, :text
 
       # Initialize colors to default.
       def initialize
         require_relative 'Color'
+        require_relative 'ColorsUpgrade'
 
         @install      = Color.new(Color::TEXT_GREEN, nil, Color::EFFECT_BOLD)
+        @upgrade      = ColorsUpgrade.new
         @remove       = Color.new(Color::TEXT_RED,   nil, Color::EFFECT_BOLD)
         @description  = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
         @size         = Color.new(Color::TEXT_BLACK, nil, Color::EFFECT_BOLD)
@@ -66,6 +71,7 @@ module Apti
         end
 
         @install.read_from(colors['install'])
+        @upgrade.read_from(colors['upgrade'])
         @remove.read_from(colors['remove'])
         @description.read_from(colors['description'])
         @size.read_from(colors['size'])
@@ -78,6 +84,7 @@ module Apti
       def write_to
         return {
           'install'     =>  @install.write_to,
+          'upgrade'    =>  @upgrade.write_to,
           'remove'      =>  @remove.write_to,
           'description' =>  @description.write_to,
           'size'        =>  @size.write_to,

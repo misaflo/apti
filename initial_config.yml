@@ -4,6 +4,29 @@ colors:
     text: GREEN
     background: 
     effect: BOLD
+  upgrade:
+    revision:
+      version:
+        text: WHITE
+        background: 
+        effect: BOLD
+      old:
+        text: RED
+        background: 
+        effect: BOLD
+      new:
+        text: GREEN
+        background: 
+        effect: BOLD
+    version:
+      old:
+        text: RED
+        background: 
+        effect: BOLD
+      new:
+        text: GREEN
+        background: 
+        effect: BOLD
   remove:
     text: RED
     background: 
