@@ -536,6 +536,8 @@ module Apti
 
       # If we do an upgrade, we separate new revisions and new versions.
       if operation.eql?(I18n.t(:'operation.upgrading'))
+        upgrade = true
+
         upgrade_revisions = []
         upgrade_versions = []
 
@@ -555,14 +557,10 @@ module Apti
         exit 1
       end
 
-      # Have we packages to upgrade?
-      # If yes, we display them at the end (after news to install, and those to remove).
-      if !explicit.first.version_new.nil?
-        upgrade = true
-      end
 
       print_header(max.name.length, max.version_all.length)
 
+      # If we have packages to upgrade, we display them at the end (after news to install, and those to remove).
       if !upgrade
         puts "#{@config.colors.text.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         explicit.each { |package| display_package_line(package, max, color) }
@@ -582,13 +580,17 @@ module Apti
       end
 
       if upgrade
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-        upgrade_revisions.each { |package| display_package_line(package, max, color) }
-        puts ''
+        if !upgrade_revisions.empty?
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          upgrade_revisions.each { |package| display_package_line(package, max, color) }
+          puts ''
+        end
 
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-        upgrade_versions.each { |package| display_package_line(package, max, color) }
-        puts ''
+        if !upgrade_versions.empty?
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          upgrade_versions.each { |package| display_package_line(package, max, color) }
+          puts ''
+        end
       end
 
       # Size to download and install.
