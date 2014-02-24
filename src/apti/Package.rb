@@ -4,7 +4,7 @@
 # This file is part of Apti.
 #
 # Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
-# Copyright (C) 2013 by Julien Rosset <jul.rosset at gmail dot com>
+# Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
 # Apti is free software: you can redistribute it and/or modify
