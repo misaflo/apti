@@ -71,13 +71,13 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      # name without architecture information
+      # Name without architecture and version informations (ex: toto:amd64 or toto=3.2)
       # ex: 'package' instead of 'package:amd64'
-      name_without_arch = name.split(':').first
+      name_cleaned = name.split(':').first.split('=').first
 
-      pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_without_arch}"`
+      pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_cleaned}"`
 
-      if pkg.include?(name_without_arch)
+      if pkg.include?(name_cleaned)
         return true
       end
 
