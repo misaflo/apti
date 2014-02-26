@@ -32,7 +32,7 @@ module Apti
 
       #
       # @!attribute static [r]
-      #   @return [Apti::Config::Color] Color of static part of version (upgrade)
+      #   @return [Apti::Config::Color] Color of static part of version (upgrade).
       attr_reader :static
 
       # Initialize colors to default.

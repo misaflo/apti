@@ -94,7 +94,7 @@ module Apti
 
     # Install packages.
     #
-    # @param package [String] List of packages to install
+    # @param package [String] List of packages to install.
     #
     # @return [void]
     def install(package)
@@ -407,7 +407,8 @@ module Apti
       max.size_after_decimal  = ''
       max.size_unit           = ''
 
-      max_old_static          = ''       # Longest text for packages with no-revision (see below for explanations)
+      # Longest text for packages with no-revision (see below for explanations).
+      max_old_static          = ''
 
       thousands_separator = I18n.t(:'number.separator.thousands')
       decimal_separator   = I18n.t(:'number.separator.decimal')
@@ -437,15 +438,15 @@ module Apti
               (?:
                 \p{Space}->\p{Space}              # Separator : ->
                 ([[:alnum:]+.:~]*)                # New version (without revision).
-                (?:-([[:alnum:]+.:~-]+))?         # New revision (if any)
+                (?:-([[:alnum:]+.:~-]+))?         # New revision (if any).
               )?
             \]
             (?:\p{Space}<
-              ([+-]?                                                          # Size symbol
-              [[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)   # Size before decimal : integer part
-              ([#{decimal_separator}][[:digit:]]+)?                           # Size after  decimal : decimal part
+              ([+-]?                                                          # Size symbol.
+             [[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)    # Size before decimal : integer part.
+              ([#{decimal_separator}][[:digit:]]+)?                           # Size after  decimal : decimal part.
               \p{Space}
-              ([[:alpha:]]+)                                                  # Size unit
+              ([[:alpha:]]+)                                                  # Size unit.
             >)?$
           /x
           package = Package.new
@@ -453,10 +454,10 @@ module Apti
           package.name                = Regexp.last_match[1]
           package.parameter           = Regexp.last_match[2]
 
-          if Regexp.last_match[3] == Regexp.last_match[5]     # If old version (without revision) and new version (without revision) are identical => only "revision" upgrade
-            package.version_static = Regexp.last_match(3);      # Version (without revision)
-            package.version_old    = Regexp.last_match(4);      # Old revision
-            package.version_new    = Regexp.last_match(6);      # New revision
+          if Regexp.last_match[3] == Regexp.last_match[5]     # If old version (without revision) and new version (without revision) are identical => only "revision" upgrade.
+            package.version_static = Regexp.last_match(3);      # Version (without revision).
+            package.version_old    = Regexp.last_match(4);      # Old revision.
+            package.version_new    = Regexp.last_match(6);      # New revision.
 
             if package.version_static.length > max.version_static.length
               max.version_static = package.version_static
@@ -465,15 +466,15 @@ module Apti
             if package.version_old.length > max.version_old.length
               max.version_old = package.version_old
             end
-          else                                                # Else => "version" upgrade or not an upgrade
-            package.version_static = nil                        # no "root" version : used to know if "revision" upgrade or not
-            package.version_old    = Regexp.last_match(3)       # "old" version => always présent
+          else                                                # Else => "version" upgrade or not an upgrade.
+            package.version_static = nil                        # No "root" version : used to know if "revision" upgrade or not.
+            package.version_old    = Regexp.last_match(3)       # "Old" version => always present.
             if !Regexp.last_match(4).nil?
-              package.version_old = package.version_old + "-" + Regexp.last_match(4)    # add revision only if exists
+              package.version_old = package.version_old + "-" + Regexp.last_match(4)    # Add revision only if exists
             end
 
-            if !Regexp.last_match(5).nil?                       # and only if new version exist
-              package.version_new  = Regexp.last_match(5)         # remember it
+            if !Regexp.last_match(5).nil?                       # And only if new version exist.
+              package.version_new  = Regexp.last_match(5)         # Remember it.
               
               if !Regexp.last_match(6).nil?
                 package.version_new = package.version_new + "-" + Regexp.last_match(6)
@@ -511,10 +512,11 @@ module Apti
         end
       end
 
-      # Check if longuest text of no-revision upgrades (including install or remove) are greater than bloc of longuest version and longuest old revision of revision upgrades.
-      # Must be done AFTER treating all packages to ensure to use REALY longuest parts !
+      # Check if longest text of no-revision upgrades (including install or remove) are greater than bloc of longest version and longest old revision of revision upgrades.
+      # Must be done AFTER treating all packages to ensure to use REALLY longest parts!
       if max_old_static.length > (max.version_old.length + max.version_static.length)
-        max.version_static = max_old_static.slice(0, max_old_static.length - max.version_old.length)    # If so, this is first part ("root" version part) must be increased.
+        # If so, this is first part ("root" version part) must be increased.
+        max.version_static = max_old_static.slice(0, max_old_static.length - max.version_old.length)
       end
 
       out            = {}
@@ -685,8 +687,7 @@ module Apti
       # Spaces.
       print ''.rjust((max.name.length - package.name.length) + @config.spaces.columns)
 
-      # Versions
-        # Version ou révision ?
+      # Versions (with revisions).
       if package.version_static.nil?
         print "#{get_color_for(operation, 'version.old')}#{package.version_old}"
       else
@@ -732,13 +733,16 @@ module Apti
     #
     # @return [String] The shell notation of the color.
     def get_color_for(operation, sub_op)
-      color = @config.colors.send operation       # Get the config field according to current operation
+      # Get the config field according to current operation.
+      color = @config.colors.send operation
 
       if operation == 'upgrade' && !sub_op.nil?
-        sub_op.split('.').each {|sub_var| color = color.send sub_var}     # Must be do level by level because Object::send doesn't support dots (not like expected)
+        # Must be do level by level because Object::send doesn't support dots (not like expected).
+        sub_op.split('.').each { |sub_var| color = color.send sub_var }
       end
 
-      return color.to_shell_color     # Directly change color to shell notation
+      # Directly change color to shell notation.
+      color.to_shell_color  
     end
 
     # Print header for install, remove and upgrade.

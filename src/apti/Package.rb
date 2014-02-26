@@ -71,7 +71,7 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      # Name without architecture and version informations (ex: foo for foo:amd64 or foo=3.2)
+      # Name without architecture and version informations (ex: foo for foo:amd64 or foo=3.2).
       name_cleaned = name.split(':').first.split('=').first
 
       pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_cleaned}"`
