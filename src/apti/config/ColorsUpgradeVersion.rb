@@ -41,20 +41,20 @@ module Apti
       def initialize
         require_relative 'Color'
 
-        @old = Color.new(Color::TEXT_GREEN, nil, Color::EFFECT_BOLD)
-        @new = Color.new(Color::TEXT_RED,   nil, Color::EFFECT_BOLD)
+        @old = Color.new(Color::TEXT_RED, nil, Color::EFFECT_BOLD)
+        @new = Color.new(Color::TEXT_GREEN,   nil, Color::EFFECT_BOLD)
       end
 
       # Read upgrade-version colors from a YAML configuration (itself from a configuration file).
       #
       # @param  version  [Hash{String => String, Fixnum}]   YAML colors part.
       def read_from(version)
-        if colors.nil?
+        if version.nil?
           return
         end
 
-        @old.read_from(colors['old'])
-        @new.read_from(colors['new'])
+        @old.read_from(version['old'])
+        @new.read_from(version['new'])
       end
 
       # Write colors to a YAML configuration (itself to a configuration file).

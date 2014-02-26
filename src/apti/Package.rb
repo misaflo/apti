@@ -50,7 +50,7 @@ module Apti
     #
     # @!attribute description
     #   @return [String] Description of the package.
-    attr_accessor :name, :parameter, :version_old, :version_new,
+    attr_accessor :name, :parameter, :version_static, :version_old, :version_new,
       :size_before_decimal, :size_after_decimal, :size_unit,
       :description
 
@@ -58,7 +58,7 @@ module Apti
     #
     # @return [String] Version(s) of the package.
     def version_all
-      version_all = version_old
+      version_all = version_static + version_old
 
       if !version_new.empty?
         version_all += " -> #{version_new}"

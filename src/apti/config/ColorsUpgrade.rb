@@ -54,7 +54,7 @@ module Apti
         end
 
         @revision.read_from(upgrade['revision'])
-        @version.read_from(version['revision'])
+        @version.read_from(upgrade['version'])
       end
 
       # Write upgrade colors to a YAML configuration (itself to a configuration file).

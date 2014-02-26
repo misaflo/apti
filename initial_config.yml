@@ -6,7 +6,7 @@ colors:
     effect: BOLD
   upgrade:
     revision:
-      version:
+      static:
         text: WHITE
         background: 
         effect: BOLD

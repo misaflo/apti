@@ -131,7 +131,7 @@ module Apti
       operation = I18n.t(:'operation.installing')
       question = I18n.t(:'operation.question.installation')
 
-      if display_packages(packages, operation, @config.colors.install, question, aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, 'install', question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -194,7 +194,7 @@ module Apti
       # Split packages.
       packages = aptitude_string.split(/ {2}/)
 
-      if display_packages(packages, operation, @config.colors.remove, question, aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, 'remove', question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -231,7 +231,7 @@ module Apti
       operation = I18n.t(:'operation.upgrading')
       question = I18n.t(:'operation.question.upgrade')
 
-      if display_packages(packages, operation, @config.colors.remove, question, aptitude_string.split(/\n/)[-2])
+      if display_packages(packages, operation, 'upgrade', question, aptitude_string.split(/\n/)[-2])
         execute_command(command, true)
       end
     end
@@ -400,11 +400,14 @@ module Apti
 
       max = Package.new
       max.name                = I18n.t(:'header.package')
+      max.version_static      = ''
       max.version_old         = I18n.t(:'header.version')
       max.version_new         = ''
       max.size_before_decimal = ''
       max.size_after_decimal  = ''
       max.size_unit           = ''
+
+      max_old_static = ''
 
       thousands_separator = I18n.t(:'number.separator.thousands')
       decimal_separator   = I18n.t(:'number.separator.decimal')
@@ -415,25 +418,53 @@ module Apti
 
       packages_line.each do |package_line|
         # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-        #                      name                  parameter           version_old                    ->  version_new                 size_before                                                       size_after                            size_unit
-        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:][:space:]+.:~-]*)(?: -> ([[:alnum:]+.:~-]*))?\](?: <([+-]?[[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)([#{decimal_separator}][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+        #                      name                   parameter              version_old              -     revision_old                 ->  version_new         - revision_new                   size_before                                                                          size_after          size_unit
+        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:][:space:]+.:~]*)(?:-([[:alnum:][:space:]+.:~-]+))?(?: -> ([[:alnum:]+.:~]*)(?:-([[:alnum:]+.:~-]+))?)?\](?: <([+-]?[[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)([#{decimal_separator}][[:digit:]]+)? ([[:alpha:]]+)>)?$/
           package = Package.new
 
           package.name                = Regexp.last_match[1]
           package.parameter           = Regexp.last_match[2]
-          package.version_old         = Regexp.last_match[3]
-          package.version_new         = Regexp.last_match[4]
-          package.size_before_decimal = Regexp.last_match[5]
-          package.size_after_decimal  = Regexp.last_match[6]
-          package.size_unit           = Regexp.last_match[7]
+
+          if Regexp.last_match[3] == Regexp.last_match[5]
+            package.version_static = Regexp.last_match(3);
+            package.version_old    = Regexp.last_match(4);
+            package.version_new    = Regexp.last_match(6);
+
+            if package.version_static.length > max.version_static.length
+              max.version_static = package.version_static
+            end
+
+            if package.version_old.length > max.version_old.length
+              max.version_old = package.version_old
+            end
+          else
+            package.version_static = nil
+            package.version_old    = Regexp.last_match(3)
+            if !Regexp.last_match(4).nil?
+              package.version_old = package.version_old + "-" + Regexp.last_match(4)
+            end
+
+            if !Regexp.last_match(5).nil?
+              package.version_new  = Regexp.last_match(5)
+              
+              if !Regexp.last_match(6).nil?
+                package.version_new = package.version_new + "-" + Regexp.last_match(6)
+              end
+            end
+
+            if package.version_old.length > max_old_static.length
+              max_old_static = package.version_old
+            end
+          end
+
+          package.size_before_decimal = Regexp.last_match[7]
+          package.size_after_decimal  = Regexp.last_match[8]
+          package.size_unit           = Regexp.last_match[9]
 
           if package.name.length > max.name.length
             max.name = package.name
           end
 
-          if package.version_old.length > max.version_old.length
-            max.version_old = package.version_old
-          end
           if !package.version_new.nil? && package.version_new.length > max.version_new.length
             max.version_new = package.version_new
           end
@@ -450,6 +481,10 @@ module Apti
 
           packages.push(package)
         end
+      end
+
+      if max_old_static.length > (max.version_old.length + max.version_static.length)
+        max.version_old = max_old_static.slice(0, max_old_static.length - max.version_static.length)
       end
 
       out            = {}
@@ -542,11 +577,10 @@ module Apti
         upgrade_versions = []
 
         explicit.each do |package|
-
-          if package.version_old.split('-').first == package.version_new.split('-').first
-            upgrade_revisions.push(package)
-          else
+          if package.version_static.nil?
             upgrade_versions.push(package)
+          else
+            upgrade_revisions.push(package)
           end
 
         end
@@ -569,13 +603,13 @@ module Apti
 
       if !dep_install.empty?
         puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-        dep_install.each { |package| display_package_line(package, max, @config.colors.install) }
+        dep_install.each { |package| display_package_line(package, max, 'install') }
         puts ''
       end
 
       if !dep_remove.empty?
         puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
-        dep_remove.each { |package| display_package_line(package, max, @config.colors.remove) }
+        dep_remove.each { |package| display_package_line(package, max, 'remove') }
         puts ''
       end
 
@@ -615,16 +649,28 @@ module Apti
     # @param color    [Apti::Config::Color] Color to use for old / current package version.
     #
     # @return [void]
-    def display_package_line(package, max, color)
+    def display_package_line(package, max, operation)
       # Name.
       print "  #{package.name}"
       # Spaces.
       print ''.rjust((max.name.length - package.name.length) + @config.spaces.columns)
-      # Version old.
-      print "#{color.to_shell_color}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+
+      # Versions
+        # Version ou révision ?
+      if package.version_static.nil?
+        print "#{get_color_for(operation, 'version.old')}#{package.version_old}"
+      else
+        print "#{get_color_for(operation, 'revision.static')}#{package.version_static}"
+      end
+      print "#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
 
       if !package.version_new.nil?
-        print "#{' -> '.rjust((max.version_old.length - package.version_old.length) + ' -> '.length)}#{@config.colors.install.to_shell_color}#{package.version_new}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        print "#{''.rjust((max.version_old.length + max.version_static.length) - package.version_old.length - (package.version_static.nil? ? 0 : package.version_static.length))}"
+        if !package.version_static.nil?
+          print "#{get_color_for(operation, 'revision.old')}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        end
+
+        print " -> #{get_color_for(operation, (package.version_static.nil? ? 'version' : 'revision') + '.new')}#{package.version_new}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
         rjust_size = max.version_new.length - package.version_new.length
       else
         rjust_size = max.version_all.length - package.version_old.length
@@ -646,6 +692,16 @@ module Apti
       end
 
       print "\n"
+    end
+    
+    def get_color_for(operation, sub_op)
+      color = @config.colors.send operation
+
+      if operation == 'upgrade' && !sub_op.nil?
+        sub_op.split('.').each {|sub_var| color = color.send sub_var}
+      end
+
+      return color.to_shell_color
     end
 
     # Print header for install, remove and upgrade.
