@@ -407,7 +407,7 @@ module Apti
       max.size_after_decimal  = ''
       max.size_unit           = ''
 
-      max_old_static = ''
+      max_old_static          = ''       # Longest text for packages with no-revision (see below for explanations)
 
       thousands_separator = I18n.t(:'number.separator.thousands')
       decimal_separator   = I18n.t(:'number.separator.decimal')
@@ -425,10 +425,10 @@ module Apti
           package.name                = Regexp.last_match[1]
           package.parameter           = Regexp.last_match[2]
 
-          if Regexp.last_match[3] == Regexp.last_match[5]
-            package.version_static = Regexp.last_match(3);
-            package.version_old    = Regexp.last_match(4);
-            package.version_new    = Regexp.last_match(6);
+          if Regexp.last_match[3] == Regexp.last_match[5]     # If old version (without revision) and new version (without revision) are identical => only "revision" upgrade
+            package.version_static = Regexp.last_match(3);      # Version (without revision)
+            package.version_old    = Regexp.last_match(4);      # Old revision
+            package.version_new    = Regexp.last_match(6);      # New revision
 
             if package.version_static.length > max.version_static.length
               max.version_static = package.version_static
@@ -437,15 +437,15 @@ module Apti
             if package.version_old.length > max.version_old.length
               max.version_old = package.version_old
             end
-          else
-            package.version_static = nil
-            package.version_old    = Regexp.last_match(3)
+          else                                                # Else => "version" upgrade or not an upgrade
+            package.version_static = nil                        # no "root" version : used to know if "revision" upgrade or not
+            package.version_old    = Regexp.last_match(3)       # "old" version => always présent
             if !Regexp.last_match(4).nil?
-              package.version_old = package.version_old + "-" + Regexp.last_match(4)
+              package.version_old = package.version_old + "-" + Regexp.last_match(4)    # add revision only if exists
             end
 
-            if !Regexp.last_match(5).nil?
-              package.version_new  = Regexp.last_match(5)
+            if !Regexp.last_match(5).nil?                       # and only if new version exist
+              package.version_new  = Regexp.last_match(5)         # remember it
               
               if !Regexp.last_match(6).nil?
                 package.version_new = package.version_new + "-" + Regexp.last_match(6)
@@ -483,8 +483,10 @@ module Apti
         end
       end
 
+      # Check if longuest text of no-revision upgrades (including install or remove) are greater than bloc of longuest version and longuest old revision of revision upgrades.
+      # Must be done AFTER treating all packages to ensure to use REALY longuest parts !
       if max_old_static.length > (max.version_old.length + max.version_static.length)
-        max.version_old = max_old_static.slice(0, max_old_static.length - max.version_static.length)
+        max.version_static = max_old_static.slice(0, max_old_static.length - max.version_old.length)    # If so, this is first part ("root" version part) must be increased.
       end
 
       out            = {}
@@ -644,9 +646,9 @@ module Apti
 
     # Displaying the line of ONE package (for install, remove and upgrade).
     #
-    # @param package  [Apti::Package]       The package to display.
-    # @param max      [Apti::Package]       Fake package with max lengths of all attributs.
-    # @param color    [Apti::Config::Color] Color to use for old / current package version.
+    # @param package   [Apti::Package] The package to display.
+    # @param max       [Apti::Package] Fake package with max lengths of all attributs.
+    # @param operation [String]        Name of sub-variable of Apti::config.colors according to current operation (install, upgrade or remove).
     #
     # @return [void]
     def display_package_line(package, max, operation)
@@ -693,15 +695,22 @@ module Apti
 
       print "\n"
     end
-    
+   
+    # Get color of an "operation" (install, upgrade or remove).
+    # In case of "upgrade" operation, a sub-operation can be provide to access the desired color (examples in Apti::display_package_line code).
+    #
+    # @param operation [String] The "operation".
+    # @param sub_op    [String] The sub-operation, separate levels with dot.
+    #
+    # @return [String] The shell notation of the color.
     def get_color_for(operation, sub_op)
-      color = @config.colors.send operation
+      color = @config.colors.send operation       # Get the config field according to current operation
 
       if operation == 'upgrade' && !sub_op.nil?
-        sub_op.split('.').each {|sub_var| color = color.send sub_var}
+        sub_op.split('.').each {|sub_var| color = color.send sub_var}     # Must be do level by level because Object::send doesn't support dots (not like expected)
       end
 
-      return color.to_shell_color
+      return color.to_shell_color     # Directly change color to shell notation
     end
 
     # Print header for install, remove and upgrade.
