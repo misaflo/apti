@@ -417,9 +417,37 @@ module Apti
       packages_line.delete_if { |package| package == '' || package == "\n" }
 
       packages_line.each do |package_line|
-        # ex: brasero-common{a} [3.8.0-2] <+11,2 MB>
-        #                      name                   parameter              version_old              -     revision_old                 ->  version_new         - revision_new                   size_before                                                                          size_after          size_unit
-        if package_line =~ /^([[:alnum:]+.:-]*)(?:\{([[:alpha:]])\})? \[([[:alnum:][:space:]+.:~]*)(?:-([[:alnum:][:space:]+.:~-]+))?(?: -> ([[:alnum:]+.:~]*)(?:-([[:alnum:]+.:~-]+))?)?\](?: <([+-]?[[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)([#{decimal_separator}][[:digit:]]+)? ([[:alpha:]]+)>)?$/
+        # ex: brasero-common{a} [3.8.0-2 -> 3.8.0-5] <+11,2 MB>
+        #   name          : brasero-common
+        #   parameter     : a
+        #   old version   : 3.8.0
+        #   old revision  : 2
+        #   new version   : 3.8.0
+        #   new revision  : 5
+        #   size before   : +11
+        #   size after    : 2
+        #   size_unit     : MB
+        if package_line =~ /
+            ^([[:alnum:]+.:-]*)                 # Package name.
+            (?:\{([[:alpha:]])\})?              # Package parameter (a,u,...) if any.
+            \p{Space}
+            \[
+              ([[:alnum:][:space:]+.:~]*)       # Old version (without revision).
+              (?:-([[:alnum:][:space:]+.:~-]+))?  # Old revision (if any).
+              (?:
+                \p{Space}->\p{Space}              # Separator : ->
+                ([[:alnum:]+.:~]*)                # New version (without revision).
+                (?:-([[:alnum:]+.:~-]+))?         # New revision (if any)
+              )?
+            \]
+            (?:\p{Space}<
+              ([+-]?                                                          # Size symbol
+              [[:digit:]]{1,3}(?:[#{thousands_separator}]?[[:digit:]]{3})*)   # Size before decimal : integer part
+              ([#{decimal_separator}][[:digit:]]+)?                           # Size after  decimal : decimal part
+              \p{Space}
+              ([[:alpha:]]+)                                                  # Size unit
+            >)?$
+          /x
           package = Package.new
 
           package.name                = Regexp.last_match[1]
