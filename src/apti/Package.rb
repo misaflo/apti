@@ -71,8 +71,7 @@ module Apti
     #
     # @return [Boolean] True if the package exist.
     def exist?
-      # Name without architecture and version informations (ex: toto:amd64 or toto=3.2)
-      # ex: 'package' instead of 'package:amd64'
+      # Name without architecture and version informations (ex: foo for foo:amd64 or foo=3.2)
       name_cleaned = name.split(':').first.split('=').first
 
       pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_cleaned}"`
@@ -88,9 +87,12 @@ module Apti
     #
     # @return [Boolean] True if the package is installed.
     def is_installed?
-      pkg = `dpkg --get-selections | grep -v deinstall | cut -f 1 | grep ^#{name}$`.chomp
+      # If the package does not have information about architecture.
+      pkg       = `dpkg --get-selections | grep -v deinstall | cut -f 1 | grep ^#{name}$`.chomp
+      # If the package has information about architecture (foo:amd64).
+      pkg_arch  = `dpkg --get-selections | grep -v deinstall | cut -f 1 | grep ^#{name}:`.chomp.split(':').first
 
-      if pkg.eql?(name)
+      if [pkg, pkg_arch].include?(name)
         return true
       end
 
