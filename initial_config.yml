@@ -1,51 +1,83 @@
+# Generic configuration file for Apti
+# Last modification : feb 27 2014
+
 ---
+# Colors configuration
 colors:
+  # Used when new package to install, Green / Bold if not present
   install:
-    text: GREEN
-    background: 
-    effect: BOLD
+    text: GREEN             # Color of text
+    background:             # Color of background
+    effect: BOLD            # Some effect on text
+
+  # Used for upgrades
   upgrade:
+    # Upgrades with revisions
     revision:
+      # Color for common part of version, Orange / Bold if not present
       static:
-        text: WHITE
+        text: ORANGE
         background: 
         effect: BOLD
+
+      # Color for old revision, Red / Bold if not present
       old:
         text: RED
         background: 
         effect: BOLD
+
+      # Color for new revision, Green / Bold if not present
       new:
         text: GREEN
         background: 
         effect: BOLD
+    
+    # Upgrades with completly new version (no revision)
     version:
+      # Color for old version, Red / Bold if not present
       old:
         text: RED
         background: 
         effect: BOLD
+
+      # Color for new version, Green / Bold if not present
       new:
         text: GREEN
         background: 
         effect: BOLD
+
+  # Color for removing / purging packages, Red / Bold if not present
   remove:
     text: RED
     background: 
     effect: BOLD
+
+  # Color for desicriptions (in search)
   description:
     text: BLACK
     background: 
     effect: BOLD
+
+  # Color for packages size
   size:
     text: BLACK
     background: 
     effect: BOLD
+
+  # Color for text, like "Upgrading, new revision:"
   text:
     text: WHITE
     background: 
     effect: BOLD
+
+# Apti must display size information ?
 display_size: true
+
+# Spaces size
 spaces:
-  columns: 3
-  unit: 1
-  search: 40
+  columns: 3            # Spaces between two columns
+  unit: 1               # Spaces before size unit
+  search: 40            # Spaces in search alignment
+
+# Must Apti ask to confirm operation (besides "aptitude" question) ?
 no_confirm: false
