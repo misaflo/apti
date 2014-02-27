@@ -687,7 +687,7 @@ module Apti
       # Spaces.
       print ''.rjust((max.name.length - package.name.length) + @config.spaces.columns)
 
-      # Versions (with revisions).
+      # Package version (with revision if new version, without if new revision).
       if package.version_static.nil?
         print "#{get_color_for(operation, 'version.old')}#{package.version_old}"
       else
@@ -734,11 +734,11 @@ module Apti
     # @return [String] The shell notation of the color.
     def get_color_for(operation, sub_op)
       # Get the config field according to current operation.
-      color = @config.colors.send operation
+      color = @config.colors.send(operation)
 
       if operation == 'upgrade' && !sub_op.nil?
         # Must be do level by level because Object::send doesn't support dots (not like expected).
-        sub_op.split('.').each { |sub_var| color = color.send sub_var }
+        sub_op.split('.').each { |sub_var| color = color.send(sub_var) }
       end
 
       # Directly change color to shell notation.
