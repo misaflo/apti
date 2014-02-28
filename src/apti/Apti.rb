@@ -257,7 +257,7 @@ module Apti
 
         # Display package name: if the package is installed, we display it in color.
         if package.parameter.include?('i')
-          print "#{@config.colors.install.to_shell_color}#{package.name}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          print "#{@config.colors.install.to_shell_color}#{package.name}#{get_color_for()}"
         else
           print package.name
         end
@@ -271,7 +271,7 @@ module Apti
           package.description = package.description[0..(terminal_width - package_parameter_length_alignment - @config.spaces.search - 1)]
         end
 
-        puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{get_color_for()}"
       end
     end
 
@@ -628,32 +628,32 @@ module Apti
 
       # If we have packages to upgrade, we display them at the end (after news to install, and those to remove).
       if !upgrade
-        puts "#{@config.colors.text.to_shell_color}#{operation}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{operation}#{get_color_for()}"
         explicit.each { |package| display_package_line(package, max, color) }
         puts ''
       end
 
       if !dep_install.empty?
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{get_color_for()}"
         dep_install.each { |package| display_package_line(package, max, 'install') }
         puts ''
       end
 
       if !dep_remove.empty?
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{get_color_for()}"
         dep_remove.each { |package| display_package_line(package, max, 'remove') }
         puts ''
       end
 
       if upgrade
         if !upgrade_revisions.empty?
-          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{get_color_for()}"
           upgrade_revisions.each { |package| display_package_line(package, max, color) }
           puts ''
         end
 
         if !upgrade_versions.empty?
-          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{get_color_for()}"
           upgrade_versions.each { |package| display_package_line(package, max, color) }
           puts ''
         end
@@ -664,7 +664,7 @@ module Apti
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
-        print "\n#{@config.colors.text.to_shell_color}#{question} (Y/n)#{Config::Color.new(Config::Color::STYLE_END).to_shell_color} "
+        print "\n#{@config.colors.text.to_shell_color}#{question} (Y/n)#{get_color_for()} "
         answer = STDIN.gets.chomp
         if answer.empty?
           answer = 'y'
@@ -693,15 +693,15 @@ module Apti
       else
         print "#{get_color_for(operation, 'revision.static')}#{package.version_static}"
       end
-      print "#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+      print "#{get_color_for()}"
 
       if !package.version_new.nil?
         print "#{''.rjust((max.version_old.length + max.version_static.length) - package.version_old.length - (package.version_static.nil? ? 0 : package.version_static.length))}"
         if !package.version_static.nil?
-          print "#{get_color_for(operation, 'revision.old')}#{package.version_old}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+          print "#{get_color_for(operation, 'revision.old')}#{package.version_old}#{get_color_for()}"
         end
 
-        print " -> #{get_color_for(operation, (package.version_static.nil? ? 'version' : 'revision') + '.new')}#{package.version_new}#{Config::Color.new(Config::Color::STYLE_END).to_shell_color}"
+        print " -> #{get_color_for(operation, (package.version_static.nil? ? 'version' : 'revision') + '.new')}#{package.version_new}#{get_color_for}"
         rjust_size = max.version_new.length - package.version_new.length
       else
         rjust_size = max.version_all.length - package.version_old.length
@@ -719,7 +719,7 @@ module Apti
         # Spaces and unit.
         print package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)
         # End color.
-        print Config::Color.new(Config::Color::STYLE_END).to_shell_color
+        print get_color_for()
       end
 
       print "\n"
@@ -728,17 +728,23 @@ module Apti
     # Get color of an "operation" (install, upgrade or remove).
     # In case of "upgrade" operation, a sub-operation can be provide to access the desired color (examples in Apti::display_package_line code).
     #
+    # If no "operation" is get, return the special Config::Color::STYLE_END color.
+    #
     # @param operation [String] The "operation".
     # @param sub_op    [String] The sub-operation, separate levels with dot.
     #
     # @return [String] The shell notation of the color.
-    def get_color_for(operation, sub_op)
-      # Get the config field according to current operation.
-      color = @config.colors.send(operation)
+    def get_color_for(operation = nil, sub_op = nil)
+      if operation.nil?
+        color = Config::Color.new(Config::Color::STYLE_END)
+      else
+        # Get the config field according to current operation.
+        color = @config.colors.send(operation)
 
-      if operation == 'upgrade' && !sub_op.nil?
-        # Must be do level by level because Object::send doesn't support dots (not like expected).
-        sub_op.split('.').each { |sub_var| color = color.send(sub_var) }
+        if operation == 'upgrade' && !sub_op.nil?
+          # Must be do level by level because Object::send doesn't support dots (not like expected).
+          sub_op.split('.').each { |sub_var| color = color.send(sub_var) }
+        end
       end
 
       # Directly change color to shell notation.
