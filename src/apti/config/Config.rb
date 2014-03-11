@@ -55,7 +55,7 @@ module Apti
         @no_confirm   = false
 
         path = get_dir + file
-        if not File.exists? path
+        if not File.exist? path
           write_to(file)
         else
           read_from(file)
