@@ -2,7 +2,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -56,17 +56,6 @@ module Apti
         @columns = read_space(spaces['columns'], @columns)
         @unit    = read_space(spaces['unit'],    @unit)
         @search  = read_space(spaces['search'],  @search)
-      end
-
-      # Write spaces to a YAML configuration (itself to a configuration file).
-      #
-      # @return YAML spaces part.
-      def write_to
-        {
-          'columns' =>  @columns,
-          'unit'    =>  @unit,
-          'search'  =>  @search
-        }
       end
 
       private

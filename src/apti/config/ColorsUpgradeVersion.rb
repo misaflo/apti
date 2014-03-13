@@ -57,15 +57,6 @@ module Apti
         @new.read_from(version['new'])
       end
 
-      # Write colors to a YAML configuration (itself to a configuration file).
-      #
-      # @return YAML colors part.
-      def write_to
-        {
-          'old' =>  @old.write_to,
-          'new' =>  @new.write_to,
-        }
-      end
     end
 
   end

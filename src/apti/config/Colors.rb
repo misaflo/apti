@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -78,19 +78,6 @@ module Apti
         @text.read_from(colors['text'])
       end
 
-      # Write colors to a YAML configuration (itself to a configuration file).
-      #
-      # @return YAML colors part.
-      def write_to
-        return {
-          'install'     =>  @install.write_to,
-          'upgrade'    =>  @upgrade.write_to,
-          'remove'      =>  @remove.write_to,
-          'description' =>  @description.write_to,
-          'size'        =>  @size.write_to,
-          'text'        =>  @text.write_to
-        }
-      end
     end
 
   end

@@ -3,6 +3,7 @@
 #
 # This file is part of Apti.
 #
+# Copyright (C) 2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -57,15 +58,6 @@ module Apti
         @version.read_from(upgrade['version'])
       end
 
-      # Write upgrade colors to a YAML configuration (itself to a configuration file).
-      #
-      # @return YAML colors part.
-      def write_to
-        {
-          'revision'    =>  @revision.write_to,
-          'version'     =>  @version.write_to
-        }
-      end
     end
 
   end

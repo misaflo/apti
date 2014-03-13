@@ -3,6 +3,7 @@
 #
 # This file is part of Apti.
 #
+# Copyright (C) 2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -55,15 +56,6 @@ module Apti
         @static.read_from(revision['static'])
       end
 
-      # Write colors to a YAML configuration (itself to a configuration file).
-      #
-      # @return YAML colors part.
-      def write_to
-        hash = super()
-        hash['static'] = @static.write_to
-        
-        hash
-      end
     end
 
   end
