@@ -62,7 +62,7 @@ module Apti
         hash = super()
         hash['static'] = @static.write_to
         
-        return hash
+        hash
       end
     end
 

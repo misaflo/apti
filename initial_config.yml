@@ -1,5 +1,5 @@
 # Generic configuration file for Apti
-# Last modification : feb 27 2014
+# Last modification : mar 13 2014
 
 ---
 # Colors configuration
@@ -32,7 +32,7 @@ colors:
         background: 
         effect: BOLD
     
-    # Upgrades with completly new version (no revision)
+    # Upgrades with completely new version (no revision)
     version:
       # Color for old version, Red / Bold if not present
       old:
@@ -52,7 +52,7 @@ colors:
     background: 
     effect: BOLD
 
-  # Color for desicriptions (in search)
+  # Color for descriptions (in search)
   description:
     text: BLACK
     background: 
@@ -70,7 +70,7 @@ colors:
     background: 
     effect: BOLD
 
-# Apti must display size information ?
+# Apti must display size information?
 display_size: true
 
 # Spaces size
@@ -79,5 +79,5 @@ spaces:
   unit: 1               # Spaces before size unit
   search: 40            # Spaces in search alignment
 
-# Must Apti ask to confirm operation (besides "aptitude" question) ?
+# Must Apti ask to confirm operation (besides "aptitude" question)?
 no_confirm: false

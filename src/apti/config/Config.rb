@@ -2,7 +2,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013 by Florent Lévigne <florent.levigne at mailoo dot com>
+# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot com>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -23,26 +23,26 @@
 
 module Apti
 
-  # Apti configuration module
+  # Apti configuration module.
   module Config
 
-    # Apti general configuration
+    # Apti general configuration.
     class Config
       #
       # @!attribute colors [r]
       #   @return [Colors] Colors.
       #
       # @!attribute display_size [r]
-      #   @return [Boolean] Display packages size or not ?
+      #   @return [Boolean] Display packages size or not?
       #
       # @!attribute spaces [r]
       #   @return [Spaces] Spaces.
       #
       # @!attribute no_confirm [r]
-      #   @return [String] Ask operation confirmation or not ?
+      #   @return [String] Ask operation confirmation or not?
       attr_reader :colors, :display_size, :spaces, :no_confirm
 
-      # Initialize configuration : read configuration file or, if not exists, create it with default configuration.
+      # Initialize configuration: read configuration file or, if not exists, create it with default configuration.
       #
       # @param  file    [String]    Configuration filename (without path).
       def initialize(file = 'aptirc.yml')
@@ -55,7 +55,7 @@ module Apti
         @no_confirm   = false
 
         path = get_dir + file
-        if not File.exist? path
+        if !File.exist?(path)
           write_to(file)
         else
           read_from(file)
@@ -84,7 +84,7 @@ module Apti
       def write_to(filename)
         require 'fileutils'
 
-        if not File.directory? get_dir
+        if !File.directory?(get_dir)
           FileUtils.mkdir_p(get_dir)
         end
 
@@ -97,7 +97,7 @@ module Apti
       #
       # @return [String]  Path of Apti configuration directory.
       def get_dir
-        return get_env_dir + '/apti/'
+        get_env_dir + '/apti/'
       end
 
       # Get path to system configuration directory.
@@ -114,7 +114,7 @@ module Apti
       # Get correct value of boolean from YAML configuration (cf. read_from).
       #
       # @param  bool            [Boolean]   The value to "read".
-      # @param  default_value   [Boolean]   Default value to use if @a bool is not valid.
+      # @param  default_value   [Boolean]   Default value to use if bool is not valid.
       #
       # @return [Boolean]   The correct value.
       def read_boolean(bool, default_value)

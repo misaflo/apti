@@ -61,7 +61,7 @@ module Apti
       #
       # @return YAML colors part.
       def write_to
-        return {
+        {
           'old' =>  @old.write_to,
           'new' =>  @new.write_to,
         }

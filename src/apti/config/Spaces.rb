@@ -62,7 +62,7 @@ module Apti
       #
       # @return YAML spaces part.
       def write_to
-        return {
+        {
           'columns' =>  @columns,
           'unit'    =>  @unit,
           'search'  =>  @search
