@@ -26,6 +26,7 @@ module Apti
 
   require 'i18n'
   require_relative 'config/Config'
+  require_relative 'version'
 
   class Apti
     NEED_SUPERUSER_RIGHTS = [

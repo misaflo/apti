@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
-require 'apti/Apti'
+require_relative '../src/apti/Apti'
 
 # Enable warnings.
 $VERBOSE = true
