@@ -28,7 +28,6 @@ module Apti
   require_relative 'config/Config'
 
   class Apti
-    VERSION = '0.5.1'
     NEED_SUPERUSER_RIGHTS = [
       'install', 'remove', 'purge', 'hold', 'unhold', 'keep', 'reinstall',
       'markauto', 'unmarkauto', 'build-depends', 'build-dep', 'forbid-version',
