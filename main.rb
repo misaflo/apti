@@ -1,1 +1,1 @@
-src/main.rb
+bin/apti

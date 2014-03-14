@@ -16,6 +16,8 @@ Dependencies:
 
 Put apti in /usr/local/, and create a link to main.rb: `ln -s /usr/local/apti/main.rb /usr/local/bin/apti`
 
+Or with rubygems `gem build apti.gemspec` and then `gem install apti-0.5.1.gem`.
+
 # Configuration
 
 Configuration file is in ~/.config/apti (by default).
