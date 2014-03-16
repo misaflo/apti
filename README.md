@@ -12,18 +12,14 @@ RSS feed of versions: https://gitorious.org/apti/apti/raw/stable:changelog.xml
 
 ## With git
 
-Dependencies:
+Dependencies: aptitude, ruby >= 1.9, ruby-i18n
 
-* aptitude (of course)
-* ruby >= 1.9
-* ruby-i18n
-
-    git clone -b stable git://gitorious.org/apti/apti.git /usr/local/
-    ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
+    # git clone -b stable git://gitorious.org/apti/apti.git /usr/local/
+    # ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
 
 ## With rubygems
 
-    gem install apti
+    # gem install apti
 
 # Configuration
 
