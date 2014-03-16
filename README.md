@@ -8,15 +8,20 @@ The improved commands are: `install`, `remove`, `purge`, `safe-upgrade`, `full-u
 
 # Installation
 
+## With git
+
 Dependencies:
 
 * aptitude (of course)
 * ruby >= 1.9
 * ruby-i18n
 
-Put apti in /usr/local/, and create a link to main.rb: `ln -s /usr/local/apti/main.rb /usr/local/bin/apti`
+    git clone -b stable git://gitorious.org/apti/apti.git /usr/local/
+    ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
 
-Or with rubygems `gem build apti.gemspec` and then `gem install apti-0.5.1.gem`.
+## With rubygems
+
+    gem install apti
 
 # Configuration
 
