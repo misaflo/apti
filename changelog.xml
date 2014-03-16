@@ -6,9 +6,21 @@
 		<link>https://gitorious.org/apti/apti</link>
 		<description>Log about all "stable" updates on Apti</description>
 
-		<atom:link href="https://gitorious.org/apti/apti/source/stable:changelog.xml" rel="self" type="application/rss+xml" />
+		<atom:link href="https://gitorious.org/apti/apti/source/master:changelog.xml" rel="self" type="application/rss+xml" />
 
-		<lastBuildDate>Tue Jan 28 13:32:47 2014 +0100</lastBuildDate>
+    <lastBuildDate>Sun Mar 16 14:30:00 2014 +0100</lastBuildDate>
+
+		<item>
+			<title>Version 0.6</title>
+			<link>https://gitorious.org/apti/apti/source/v0.6:</link>
+			<guid isPermaLink="false">v0_6</guid>
+			<description><![CDATA[
+				<ul>
+					<li>Separate new revisions and new versions in upgrade.</li>
+				</ul>
+			]]></description>
+			<pubDate>Sun Mar 16 14:30:00 2014 +0100</pubDate>
+		</item>
 
 		<item>
 			<title>Version 0.5.1</title>
@@ -22,6 +34,7 @@
 			]]></description>
 			<pubDate>Tue Jan 28 13:32:47 2014 +0100</pubDate>
 		</item>
+
 		<item>
 			<title>Version 0.5</title>
 			<link>https://gitorious.org/apti/apti/source/v0.5:</link>
