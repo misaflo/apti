@@ -6,6 +6,8 @@ It uses the same commands as aptitude, and allow you to use it without superuser
 
 The improved commands are: `install`, `remove`, `purge`, `safe-upgrade`, `full-upgrade` and `search`.
 
+RSS feed of versions: https://gitorious.org/apti/apti/raw/stable:changelog.xml
+
 # Installation
 
 ## With git
