@@ -517,6 +517,9 @@ module Apti
       if max_old_static.length > (max.version_old.length + max.version_static.length)
         # If so, this is first part ("root" version part) must be increased.
         max.version_static = max_old_static.slice(0, max_old_static.length - max.version_old.length)
+      else
+        # If not, we must add spaces between `static` version and old revision or it will be collapse.
+        max.version_static = max.version_static.rjust(max.version_static.length + @config.spaces.columns)
       end
 
       out            = {}
