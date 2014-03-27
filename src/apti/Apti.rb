@@ -244,7 +244,8 @@ module Apti
     def search(package_name)
       require_relative 'Package'
 
-      aptitude_string = `aptitude search --disable-columns #{package_name}`
+      # For details of the output format, see: http://aptitude.alioth.debian.org/doc/en/ch02s05s01.html#secDisplayFormat
+      aptitude_string = `aptitude search --disable-columns -F "%c %M|%p|%d" #{package_name}`
       terminal_width  = `tput cols`.to_i
 
       # Information size (i, p, A, ...) : 6 seems to be good.
@@ -542,30 +543,11 @@ module Apti
       aptitude_string.each_line do |package_line|
         package = Package.new
 
-        package_str = package_line.split '- '
+        package_array = package_line.split('|')
 
-        # Parameter and name, ex: i A aptitude-common.
-        package_parameter_and_name = package_str.first
-
-        package.description = ''
-
-        # Construct the description (all after the first '-').
-        name_passed = false
-        package_str.each do |str|
-          if not name_passed
-            name_passed = true
-          else
-            package.description.concat "- #{str }"
-          end
-        end
-
-        # The package name (without informations).
-        package.name = package_parameter_and_name.split.last
-
-        # Informations of the package: i, p, A, ...
-        package_info = package_parameter_and_name.split
-        package_info.pop
-        package.parameter = package_info.join(' ')
+        package.parameter = package_array[0]
+        package.name = package_array[1]
+        package.description = "- #{package_array[2]}"
 
         packages.push(package)
       end
