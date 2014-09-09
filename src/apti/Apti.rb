@@ -464,6 +464,10 @@ module Apti
               max.version_static = package.version_static
             end
 
+            # Sometimes, there are package without revision information.
+            # In this case we assign '' to version_old to prevent crash.
+            package.version_old ||= ''
+
             if package.version_old.length > max.version_old.length
               max.version_old = package.version_old
             end
