@@ -8,7 +8,19 @@
 
 		<atom:link href="https://gitorious.org/apti/apti/source/master:changelog.xml" rel="self" type="application/rss+xml" />
 
-    <lastBuildDate>The Apr 29 14:30:00 2014 +0100</lastBuildDate>
+    <lastBuildDate>Thu Sep 25 14:30:00 2014 +0100</lastBuildDate>
+
+		<item>
+			<title>Version 0.6.2</title>
+			<link>https://gitorious.org/apti/apti/source/v0.6.2:</link>
+			<guid isPermaLink="false">v0_6_2</guid>
+			<description><![CDATA[
+				<ul>
+					<li>Fix a crash in some upgrade.</li>
+				</ul>
+			]]></description>
+			<pubDate>Thu Sep 25 14:30:00 2014 +0100</pubDate>
+		</item>
 
 		<item>
 			<title>Version 0.6.1</title>
