@@ -298,7 +298,7 @@ module Apti
     #
     # @return [void]
     def execute_command(command, no_confirm = false)
-      if not NEED_SUPERUSER_RIGHTS.include?(command.split[1])
+      if !NEED_SUPERUSER_RIGHTS.include?(command.split[1])
         system(command)
 
       elsif `groups`.split.include?('sudo')
