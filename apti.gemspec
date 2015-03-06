@@ -3,7 +3,7 @@ require_relative 'src/apti/version'
 Gem::Specification.new do |s|
   s.author = 'Florent Lévigne'
   s.email = 'florent.levigne@mailoo.org'
-  s.homepage = 'https://gitorious.org/apti'
+  s.homepage = 'https://gitlab.com/apti/apti'
   s.platform = Gem::Platform::RUBY
   s.summary = 'Apti is a frontend for aptitude with improved presentation of packages.'
   s.name = 'apti'
@@ -17,6 +17,6 @@ Gem::Specification.new do |s|
     'bin',
     'src/**/*.rb',
     'locales/**/*',
-    'initial_config.yml', 'changelog.xml']
+    'initial_config.yml', 'ChangeLog']
   s.description = %Q{Apti is a frontend of aptitude (Debian's package manager) with improved presentation of packages.}
 end
