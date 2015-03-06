@@ -13,19 +13,15 @@ Installation
 With rubygems
 -------------
 
-```sh
-gem install apti
-```
+    # gem install apti
 
 With git
 --------
 
 Dependencies: aptitude, ruby >= 1.9, ruby-i18n
 
-```sh
-git clone -b stable https://gitlab.com/apti/apti.git /usr/local/apti/
-ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
-```
+    # git clone -b stable https://gitlab.com/apti/apti.git /usr/local/apti/
+    # ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
 
 Configuration
 =============
