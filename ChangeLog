@@ -1,0 +1,18 @@
+0.6.2 (2014-09-25)
+- Fix a crash in some upgrade.
+
+0.6.1 (2014-04-29)
+- Fix alignment problem.
+
+0.6 (2014-03-16)
+- Separate new revisions and new versions in upgrade.
+
+0.5.1 (2014-01-28)
+- Fix bug when try to create the configuration directory of Apti.
+- Fix problem in search when description is too long.
+
+0.5 (2014-01-22)
+- Add internationalisation (English, French).
+- Better separations of packages (explicitly installed, dependencies, ...).
+- New configuration file (in yaml) with better personalisation (color, background, effect).
+- Some bug fixes.
