@@ -1,4 +1,5 @@
-# Description
+Description
+===========
 
 Apti is a frontend of aptitude (Debian's package manager) with improved presentation of packages.
 
@@ -6,22 +7,28 @@ It uses the same commands as aptitude, and allow you to use it without superuser
 
 The improved commands are: `install`, `remove`, `purge`, `safe-upgrade`, `full-upgrade` and `search`.
 
-RSS feed of versions: https://gitorious.org/apti/apti/raw/stable:changelog.xml
+Installation
+============
 
-# Installation
+With rubygems
+-------------
 
-## With git
+```sh
+# gem install apti
+```
+
+With git
+--------
 
 Dependencies: aptitude, ruby >= 1.9, ruby-i18n
 
-    # git clone -b stable git://gitorious.org/apti/apti.git /usr/local/
-    # ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
+```sh
+# git clone -b stable https://gitlab.com/apti/apti.git /usr/local/apti/
+# ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
+```
 
-## With rubygems
-
-    # gem install apti
-
-# Configuration
+Configuration
+=============
 
 Configuration file is in ~/.config/apti (by default).
 
@@ -35,11 +42,11 @@ Configuration file is in ~/.config/apti (by default).
     * search: between package name and description.
 * no_confirm: if true, don't ask for the aptitude's confirmation.
 
-# Screenshots
+Screenshots
+===========
 
 ![command apti install](http://gnux.legtux.org/src/images/scripts/apti_install.png "command apti install")
 
 ![command apti safe-upgrade](http://gnux.legtux.org/src/images/scripts/apti_safe_upgrade.png "command apti safe-upgrade")
 
 ![command apti search](http://gnux.legtux.org/src/images/scripts/apti_search.png "command apti search")
-
