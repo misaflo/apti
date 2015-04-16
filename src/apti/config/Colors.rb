@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2013-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -65,10 +65,10 @@ module Apti
       # Read colors from a YAML configuration (itself from a configuration file).
       #
       # @param  colors  [Hash{String => String, Fixnum}]   YAML colors part.
+      #
+      # @return [void]
       def read_from(colors)
-        if colors.nil?
-          return
-        end
+        return if colors.nil?
 
         @install.read_from(colors['install'])
         @upgrade.read_from(colors['upgrade'])
@@ -77,9 +77,6 @@ module Apti
         @size.read_from(colors['size'])
         @text.read_from(colors['text'])
       end
-
     end
-
   end
-
 end

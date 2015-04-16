@@ -49,9 +49,7 @@ module Apti
       #
       # @param  spaces  [Hash{String => Fixnum}]   YAML spaces part.
       def read_from(spaces)
-        if spaces.nil?
-          return
-        end
+        return if spaces.nil?
 
         @columns = read_space(spaces['columns'], @columns)
         @unit    = read_space(spaces['unit'],    @unit)
@@ -64,16 +62,11 @@ module Apti
       #
       # @param  space           [Fixnum]      The "space" to read.
       # @param  default_value   [Fixnum]      The default value to use if *space* is not valid.
-      # 
+      #
       # @return [Fixnum]    The correct space.
       def read_space(space, default_value)
-        if space.nil?
-          return default_value
-        end
-
-        if !(space.to_s =~ /^[[:digit:]]+$/).nil?
-          return space
-        end
+        return default_value if space.nil?
+        return space if !(space.to_s =~ /^[[:digit:]]+$/).nil?
 
         puts "Configuration : Unable to get number of spaces from \"#{space}\""
         default_value

@@ -2,7 +2,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2013-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -84,10 +84,7 @@ module Apti
       def write_to(filename)
         require 'fileutils'
 
-        if !File.directory?(get_dir)
-          FileUtils.mkdir_p(get_dir)
-        end
-
+        FileUtils.mkdir_p(get_dir) if !File.directory?(get_dir)
         FileUtils.cp("#{File.dirname("#{__FILE__}")}/../../../initial_config.yml", "#{get_dir}#{filename}");
       end
 
@@ -97,7 +94,7 @@ module Apti
       #
       # @return [String]  Path of Apti configuration directory.
       def get_dir
-        get_env_dir + '/apti/'
+        "#{get_env_dir}/apti/"
       end
 
       # Get path to system configuration directory.
@@ -118,14 +115,9 @@ module Apti
       #
       # @return [Boolean]   The correct value.
       def read_boolean(bool, default_value)
-        if bool.nil?
-          return default_value
-        end
-
+        return default_value if bool.nil?
         bool
       end
     end
-
   end
-
 end

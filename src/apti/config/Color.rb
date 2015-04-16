@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2013-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -141,7 +141,7 @@ module Apti
       attr_reader :text, :background, :effect
 
       # Initialize color to default.
-      # 
+      #
       # @param  text        [Fixnum]   Shell text color id.
       # @param  background  [Fixnum]   Shell background color id.
       # @param  effect      [Fixnum]   Shell effect id.
@@ -155,9 +155,7 @@ module Apti
       #
       # @param  color  [String, Fixnum, Hash{String => String, Fixnum}]   YAML color part.
       def read_from (color)
-        if color.nil?
-          return
-        end
+        return if color.nil?
 
         if color.class == String || color.class == Integer
           @text = read_property('text', color, @text)
@@ -172,17 +170,11 @@ module Apti
       #
       # @return [String] Shell notation.
       def to_shell_color
-        if @text == STYLE_END
-          return "\e[#{@text}m";
-        end
+        return "\e[#{@text}m" if @text == STYLE_END
 
         color = "\e[#{@effect};#{@text}"
-
-        if !@background.nil?
-          color = color + ";#{@background}"
-        end
-
-        color + "m"
+        color << ";#{@background}" if !@background.nil?
+        color << "m"
       end
 
       private
@@ -194,30 +186,21 @@ module Apti
       # @param  type          [String]          The "type" of property to read. Must only be "color", "background" or "effect".
       # @param  property      [String, Fixnum]  The value to read.
       # @param  default_value [Fixnum]          The default value to use if *property* is not valid.
-      # 
+      #
       # @return [Fixnum] The correct shell id.
       def read_property(type, property, default_value)
-        if property.nil?
-          return default_value
-        end
+        return default_value if property.nil?
 
         # If property is a number (always between 0 and 255 inclusive).
-        if property.class == Integer || !(property.to_s =~ /^[[:digit:]]{1,3}$/).nil?
-          return property
-        end
+        return property if property.class == Integer || !(property.to_s =~ /^[[:digit:]]{1,3}$/).nil?
 
         property_constant = "#{type.upcase}_#{property.upcase}"
-        if Color.const_defined?(property_constant, false)
-          return Color.const_get(property_constant, false)
-        end
+        return Color.const_get(property_constant, false) if Color.const_defined?(property_constant, false)
 
-        print "Configuration: Unable to get property #{type} from \"#{property}\"\n"
+        puts "Configuration: Unable to get property #{type} from \"#{property}\""
         default_value
       end
-
     end
-
   end
-
 end
 

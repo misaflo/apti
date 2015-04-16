@@ -17,57 +17,57 @@ colors:
       # Color for common part of version, Orange / Bold if not present
       static:
         text: ORANGE
-        background: 
+        background:
         effect: BOLD
 
       # Color for old revision, Red / Bold if not present
       old:
         text: RED
-        background: 
+        background:
         effect: BOLD
 
       # Color for new revision, Green / Bold if not present
       new:
         text: GREEN
-        background: 
+        background:
         effect: BOLD
-    
+
     # Upgrades with completely new version (no revision)
     version:
       # Color for old version, Red / Bold if not present
       old:
         text: RED
-        background: 
+        background:
         effect: BOLD
 
       # Color for new version, Green / Bold if not present
       new:
         text: GREEN
-        background: 
+        background:
         effect: BOLD
 
   # Color for removing / purging packages, Red / Bold if not present
   remove:
     text: RED
-    background: 
+    background:
     effect: BOLD
 
   # Color for descriptions (in search)
   description:
     text: BLACK
-    background: 
+    background:
     effect: BOLD
 
   # Color for packages size
   size:
     text: BLACK
-    background: 
+    background:
     effect: BOLD
 
   # Color for text, like "Upgrading, new revision:"
   text:
     text: WHITE
-    background: 
+    background:
     effect: BOLD
 
 # Apti must display size information?

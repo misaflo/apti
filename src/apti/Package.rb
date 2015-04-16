@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2013-2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2013-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -58,13 +58,8 @@ module Apti
     #
     # @return [String] Version(s) of the package.
     def version_all
-      version_all = version_static + version_old
-
-      if !version_new.empty?
-        version_all += " -> #{version_new}"
-      end
-
-      version_all
+      version_all = "#{version_static}#{version_old}"
+      version_all << " -> #{version_new}" if !version_new.empty?
     end
 
     # Test the existence of the package.
@@ -76,10 +71,7 @@ module Apti
 
       pkg = `apt-cache show #{name} 2>/dev/null | grep "Package: #{name_cleaned}"`
 
-      if pkg.include?(name_cleaned)
-        return true
-      end
-
+      return true if pkg.include?(name_cleaned)
       false
     end
 
@@ -92,12 +84,8 @@ module Apti
       # If the package has information about architecture (foo:amd64).
       pkg_arch  = `dpkg --get-selections | grep -v deinstall | cut -f 1 | grep ^#{name}:`.chomp.split(':').first
 
-      if [pkg, pkg_arch].include?(name)
-        return true
-      end
-
+      return true if [pkg, pkg_arch].include?(name)
       false
     end
   end
-
 end

@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2014-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -40,7 +40,7 @@ module Apti
       def initialize
         require_relative 'Color'
 
-        super()
+        super
         @static = Color.new(Color::TEXT_WHITE, nil, Color::EFFECT_BOLD)
       end
 
@@ -48,16 +48,11 @@ module Apti
       #
       # @param  revision  [Hash{String => String, Fixnum}]   YAML colors part.
       def read_from(revision)
-        if revision.nil?
-          return
-        end
+        return if revision.nil?
 
         super(revision)
         @static.read_from(revision['static'])
       end
-
     end
-
   end
-
 end

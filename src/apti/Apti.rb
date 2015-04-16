@@ -3,7 +3,7 @@
 #
 # This file is part of Apti.
 #
-# Copyright (C) 2012-2014 by Florent Lévigne <florent.levigne at mailoo dot org>
+# Copyright (C) 2012-2015 by Florent Lévigne <florent.levigne at mailoo dot org>
 # Copyright (C) 2013-2014 by Julien Rosset <jul.rosset at gmail dot com>
 #
 #
@@ -50,12 +50,10 @@ module Apti
     def initialize
       @config = Config::Config.new
 
-      locales_path = File.dirname("#{__FILE__}") + '/../../locales'
+      locales_path = "#{File.dirname("#{__FILE__}")}/../../locales"
       lang = `echo $LANG`.split('_').first
 
-      if defined? I18n.enforce_available_locales
-        I18n.enforce_available_locales = true
-      end
+      I18n.enforce_available_locales = true if defined? I18n.enforce_available_locales
 
       I18n.load_path = Dir[File.join(locales_path, '*.yml')]
       I18n.default_locale = :en
@@ -98,10 +96,8 @@ module Apti
     #
     # @return [void]
     def install(package)
+      usage if package.eql?(nil)
 
-      if package.eql? nil
-        usage
-      end
       # Check if some packages does not exist.
       packages_not_found = get_packages_not_found(package.split)
 
@@ -214,7 +210,7 @@ module Apti
         aptitude_string = `aptitude safe-upgrade -VZs --allow-untrusted --assume-yes #{packages}`
         command = "aptitude safe-upgrade #{packages}"
       end
-     
+
       # If problem with dependencies, use aptitude.
       if aptitude_string.include?('1)')
         execute_command(command)
@@ -272,7 +268,7 @@ module Apti
           package.description = package.description[0..(terminal_width - package_parameter_length_alignment - @config.spaces.search - 1)]
         end
 
-        puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{get_color_for()}"
+        puts "#{@config.colors.description.to_shell_color}#{package.description.chomp}#{get_color_for}"
       end
     end
 
@@ -303,16 +299,16 @@ module Apti
 
       elsif `groups`.split.include?('sudo')
         if no_confirm && @config.no_confirm
-          system "sudo #{command} --assume-yes"
+          system("sudo #{command} --assume-yes")
         else
-          system "sudo #{command}"
+          system("sudo #{command}")
         end
 
       else
         if no_confirm && @config.no_confirm
-          system "su -c '#{command} --assume-yes'"
+          system("su -c '#{command} --assume-yes'")
         else
-          system "su -c '#{command}'"
+          system("su -c '#{command}'")
         end
       end
     end
@@ -331,15 +327,12 @@ module Apti
 
       packages.each do |package_name|
         # If we use option (ex: -t sid), we don't check if packages exist.
-        if package_name =~ /^-.*$/
-          return []
-        end
+        return [] if package_name =~ /^-.*$/
 
         pkg = Package.new
         pkg.name = package_name
-        if !pkg.exist?
-          not_found.push(package_name)
-        end
+
+        not_found.push(package_name) if !pkg.exist?
       end
 
       not_found
@@ -358,9 +351,7 @@ module Apti
       packages.each do |package_name|
         pkg = Package.new
         pkg.name = package_name
-        if !pkg.is_installed?
-          all_installed = false
-        end
+        all_installed = false if !pkg.is_installed?
       end
 
       all_installed
@@ -379,16 +370,14 @@ module Apti
       packages.each do |package_name|
         pkg = Package.new
         pkg.name = package_name
-        if pkg.is_installed?
-          all_not_installed = false
-        end
+        all_not_installed = false if pkg.is_installed?
       end
 
       all_not_installed
     end
 
     # Separate packages in analysis parts (only for install, remove and upgrade).
-    # 
+    #
     # Return a Hash like +Hash{max, packages}+ with:
     #
     # * max: Apti::Package,             Fake package with max lengths of all attributs.
@@ -452,66 +441,46 @@ module Apti
           /x
           package = Package.new
 
-          package.name                = Regexp.last_match[1]
-          package.parameter           = Regexp.last_match[2]
+          package.name                = Regexp.last_match(1)
+          package.parameter           = Regexp.last_match(2)
 
-          if Regexp.last_match[3] == Regexp.last_match[5]     # If old version (without revision) and new version (without revision) are identical => only "revision" upgrade.
+          if Regexp.last_match[3] == Regexp.last_match(5)     # If old version (without revision) and new version (without revision) are identical => only "revision" upgrade.
             package.version_static = Regexp.last_match(3);      # Version (without revision).
             package.version_old    = Regexp.last_match(4);      # Old revision.
             package.version_new    = Regexp.last_match(6);      # New revision.
 
-            if package.version_static.length > max.version_static.length
-              max.version_static = package.version_static
-            end
+            max.version_static = package.version_static if package.version_static.length > max.version_static.length
 
             # Sometimes, there are package without revision information.
             # In this case we assign '' to version_old to prevent crash.
             package.version_old ||= ''
 
-            if package.version_old.length > max.version_old.length
-              max.version_old = package.version_old
-            end
+            max.version_old = package.version_old if package.version_old.length > max.version_old.length
+
           else                                                # Else => "version" upgrade or not an upgrade.
             package.version_static = nil                        # No "root" version : used to know if "revision" upgrade or not.
             package.version_old    = Regexp.last_match(3)       # "Old" version => always present.
-            if !Regexp.last_match(4).nil?
-              package.version_old = package.version_old + "-" + Regexp.last_match(4)    # Add revision only if exists
-            end
+
+            # Add revision if exists.
+            package.version_old = "#{package.version_old}-#{Regexp.last_match(4)}" if !Regexp.last_match(4).nil?
 
             if !Regexp.last_match(5).nil?                       # And only if new version exist.
-              package.version_new  = Regexp.last_match(5)         # Remember it.
-              
-              if !Regexp.last_match(6).nil?
-                package.version_new = package.version_new + "-" + Regexp.last_match(6)
-              end
+              package.version_new = Regexp.last_match(5)          # Remember it.
+              package.version_new = "#{package.version_new}-#{Regexp.last_match(6)}" if !Regexp.last_match(6).nil?
             end
 
-            if package.version_old.length > max_old_static.length
-              max_old_static = package.version_old
-            end
+            max_old_static = package.version_old if package.version_old.length > max_old_static.length
           end
 
-          package.size_before_decimal = Regexp.last_match[7]
-          package.size_after_decimal  = Regexp.last_match[8]
-          package.size_unit           = Regexp.last_match[9]
+          package.size_before_decimal = Regexp.last_match(7)
+          package.size_after_decimal  = Regexp.last_match(8)
+          package.size_unit           = Regexp.last_match(9)
 
-          if package.name.length > max.name.length
-            max.name = package.name
-          end
-
-          if !package.version_new.nil? && package.version_new.length > max.version_new.length
-            max.version_new = package.version_new
-          end
-
-          if !package.size_before_decimal.nil? && package.size_before_decimal.length > max.size_before_decimal.length
-            max.size_before_decimal = package.size_before_decimal
-          end
-          if !package.size_after_decimal.nil? && package.size_after_decimal.length > max.size_after_decimal.length
-            max.size_after_decimal = package.size_after_decimal
-          end
-          if !package.size_unit.nil? && package.size_unit.length > max.size_unit.length
-            max.size_unit = package.size_unit
-          end
+          max.name = package.name                               if package.name.length > max.name.length
+          max.version_new = package.version_new                 if !package.version_new.nil? && package.version_new.length > max.version_new.length
+          max.size_before_decimal = package.size_before_decimal if !package.size_before_decimal.nil? && package.size_before_decimal.length > max.size_before_decimal.length
+          max.size_after_decimal = package.size_after_decimal   if !package.size_after_decimal.nil? && package.size_after_decimal.length > max.size_after_decimal.length
+          max.size_unit = package.size_unit                     if !package.size_unit.nil? && package.size_unit.length > max.size_unit.length
 
           packages.push(package)
         end
@@ -527,8 +496,8 @@ module Apti
         max.version_static = max.version_static.rjust(max.version_static.length + @config.spaces.columns)
       end
 
-      out            = {}
-      out['max']     = max
+      out = {}
+      out['max']= max
       out['packages'] = packages
 
       out
@@ -567,7 +536,7 @@ module Apti
     # @param question       [String]        Question to ask for continuing operation after displaying packages list.
     # @param download_size  [String]        Aptitude's text about download sizes.
     #
-    # @return [void]
+    # @return [Boolean] Answer for executing aptitude's command.
     def display_packages(packages, operation, color, question, download_size)
       analysis  = analysis_packages(packages)
       max       = analysis['max']
@@ -623,41 +592,39 @@ module Apti
       end
 
       if !dep_install.empty?
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{get_color_for()}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:installing_for_dependencies)}#{get_color_for}"
         dep_install.each { |package| display_package_line(package, max, 'install') }
         puts ''
       end
 
       if !dep_remove.empty?
-        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{get_color_for()}"
+        puts "#{@config.colors.text.to_shell_color}#{I18n.t(:removing_unused_dependencies)}#{get_color_for}"
         dep_remove.each { |package| display_package_line(package, max, 'remove') }
         puts ''
       end
 
       if upgrade
         if !upgrade_revisions.empty?
-          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{get_color_for()}"
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_revisions')}#{get_color_for}"
           upgrade_revisions.each { |package| display_package_line(package, max, color) }
           puts ''
         end
 
         if !upgrade_versions.empty?
-          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{get_color_for()}"
+          puts "#{@config.colors.text.to_shell_color}#{I18n.t(:'operation.upgrading')} #{I18n.t(:'operation.new_versions')}#{get_color_for}"
           upgrade_versions.each { |package| display_package_line(package, max, color) }
           puts ''
         end
       end
 
       # Size to download and install.
-      puts "#{download_size}"
+      puts download_size
 
       answer = ''
       while !answer.downcase.eql?('y') && !answer.downcase.eql?('n')
-        print "\n#{@config.colors.text.to_shell_color}#{question} (Y/n)#{get_color_for()} "
+        print "\n#{@config.colors.text.to_shell_color}#{question} (Y/n)#{get_color_for} "
         answer = STDIN.gets.chomp
-        if answer.empty?
-          answer = 'y'
-        end
+        answer = 'y' if answer.empty?
       end
 
       answer.downcase.eql?('y')
@@ -682,14 +649,11 @@ module Apti
       else
         print "#{get_color_for(operation, 'revision.static')}#{package.version_static}"
       end
-      print "#{get_color_for()}"
+      print "#{get_color_for}"
 
       if !package.version_new.nil?
         print "#{''.rjust((max.version_old.length + max.version_static.length) - package.version_old.length - (package.version_static.nil? ? 0 : package.version_static.length))}"
-        if !package.version_static.nil?
-          print "#{get_color_for(operation, 'revision.old')}#{package.version_old}#{get_color_for()}"
-        end
-
+        print "#{get_color_for(operation, 'revision.old')}#{package.version_old}#{get_color_for()}" if !package.version_static.nil?
         print " -> #{get_color_for(operation, (package.version_static.nil? ? 'version' : 'revision') + '.new')}#{package.version_new}#{get_color_for}"
         rjust_size = max.version_new.length - package.version_new.length
       else
@@ -708,12 +672,12 @@ module Apti
         # Spaces and unit.
         print package.size_unit.rjust((max.size_after_decimal.length - line_size_after_length) + (max.size_unit.length) + @config.spaces.unit)
         # End color.
-        print get_color_for()
+        print get_color_for
       end
 
       print "\n"
     end
-   
+
     # Get color of an "operation" (install, upgrade or remove).
     # In case of "upgrade" operation, a sub-operation can be provide to access the desired color (examples in Apti::display_package_line code).
     #
@@ -737,7 +701,7 @@ module Apti
       end
 
       # Directly change color to shell notation.
-      color.to_shell_color  
+      color.to_shell_color
     end
 
     # Print header for install, remove and upgrade.
@@ -750,9 +714,7 @@ module Apti
       terminal_width  = `tput cols`.to_i
 
       # Top line.
-      terminal_width.times do
-        print '='
-      end
+      terminal_width.times { print '=' }
       print "\n"
 
       # Column's names.
@@ -770,11 +732,8 @@ module Apti
       print "\n"
 
       # Bottom line.
-      terminal_width.times do
-        print '='
-      end
+      terminal_width.times { print '=' }
       print "\n"
     end
-
   end
 end
