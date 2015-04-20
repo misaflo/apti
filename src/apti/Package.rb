@@ -60,6 +60,7 @@ module Apti
     def version_all
       version_all = "#{version_static}#{version_old}"
       version_all << " -> #{version_new}" if !version_new.empty?
+      version_all
     end
 
     # Test the existence of the package.
