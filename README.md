@@ -20,7 +20,7 @@ With git
 
 Dependencies: aptitude, ruby >= 1.9, ruby-i18n
 
-    # git clone -b stable https://gitlab.com/apti/apti.git /usr/local/apti/
+    # git clone -b stable https://github.com/Misaflo/apti.git /usr/local/apti/
     # ln -s /usr/local/apti/bin/apti /usr/local/bin/apti
 
 Configuration
